@@ -1,0 +1,49 @@
+name: depoxy
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # ── Core Python ──────────────────────────────────────────────────────────
+  - python=3.11
+
+  # ── Data manipulation ────────────────────────────────────────────────────
+  - numpy=1.26.4
+  - pandas=2.2.1
+
+  # ── Scientific computing ─────────────────────────────────────────────────
+  - scipy=1.13.0
+  - scikit-learn=1.4.2
+
+  # ── Visualisation ────────────────────────────────────────────────────────
+  - matplotlib=3.8.4
+  - seaborn=0.13.2
+
+  # ── Statistical modelling ────────────────────────────────────────────────
+  - statsmodels=0.14.2
+
+  # ── Jupyter environment ───────────────────────────────────────────────────
+  - jupyter=1.0.0
+  - notebook=7.1.3
+  - ipykernel=6.29.4
+
+  # ── R (called via rmarkdown::render from CLI) ─────────────────────────────
+  # Install R separately from https://cran.r-project.org or via conda:
+  # - r-base=4.3.3
+  # - r-rmarkdown
+  # - r-tidyverse
+  # - r-lme4
+  # - r-lmertest
+  # - r-emmeans
+  # - r-broom
+  # - r-broom.mixed
+  # - r-patchwork
+  # - r-knitr
+  # - r-kableextra
+  # - r-viridis
+  # Uncomment the lines above to manage R through conda, or manage R packages
+  # separately using install.packages() inside R / RStudio.
+
+  # ── pip extras ───────────────────────────────────────────────────────────
+  - pip
+  - pip:
+    - pingouin==0.5.4

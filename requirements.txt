@@ -1,0 +1,36 @@
+# ============================================================================
+# DEPOXY Project — Python requirements (pip-installable subset)
+# ============================================================================
+# For a full reproducible environment use environment.yml with conda:
+#
+#   conda env create -f environment.yml
+#   conda activate depoxy
+#
+# If you prefer pip-only installation:
+#
+#   pip install -r requirements.txt
+#
+# Note: conda is strongly preferred because it resolves binary dependencies
+# (numpy, scipy, matplotlib) more reliably than pip on all platforms.
+# ============================================================================
+
+# ── Data manipulation ────────────────────────────────────────────────────────
+numpy==1.26.4
+pandas==2.2.1
+
+# ── Scientific computing ──────────────────────────────────────────────────────
+scipy==1.13.0
+scikit-learn==1.4.2
+
+# ── Visualisation ─────────────────────────────────────────────────────────────
+matplotlib==3.8.4
+seaborn==0.13.2
+
+# ── Statistical modelling ─────────────────────────────────────────────────────
+statsmodels==0.14.2
+pingouin==0.5.4
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+jupyter==1.0.0
+notebook==7.1.3
+ipykernel==6.29.4

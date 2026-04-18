@@ -1,0 +1,665 @@
+---
+title: "DEPOXY Project — Physiological Analysis of Running Shoe Conditions"
+subtitle: "Master STAPS IEAP | Python-R-Git Course"
+author: "Baptiste AUGROS"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    theme: flatly
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    df_print: kable
+    fig_caption: true
+    code_folding: hide
+    self_contained: true
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_file = file.path("results", "main.html"),
+      ...
+    )
+  })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo       = TRUE,
+  warning    = FALSE,
+  message    = FALSE,
+  fig.width  = 10,
+  fig.height = 5.5,
+  dpi        = 180,
+  out.width  = "100%"
+)
+
+# ── Auto-install and load required packages ───────────────────────────────
+required_pkgs <- c(
+  "tidyverse", "ggplot2", "lme4", "lmerTest",
+  "emmeans", "broom", "broom.mixed", "knitr",
+  "kableExtra", "scales", "patchwork", "viridis"
+)
+for (pkg in required_pkgs) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cloud.r-project.org")
+  }
+  library(pkg, character.only = TRUE)
+}
+
+# ── DEPOXY colour palette ─────────────────────────────────────────────────
+PALETTE <- c(A = "#E63946", B = "#2A9D8F", C = "#F4A261")
+
+# ── Consistent kable helper ───────────────────────────────────────────────
+nice_kable <- function(df, caption = "") {
+  knitr::kable(df, caption = caption, digits = 3, align = "c") |>
+    kableExtra::kable_styling(
+      bootstrap_options = c("striped", "hover", "condensed"),
+      full_width = FALSE, position = "left"
+    )
+}
+
+# ── Path helpers ──────────────────────────────────────────────────────────
+# All paths are RELATIVE to the project root so the Rmd is portable.
+DATA_DIR    <- file.path("data")
+RESULTS_DIR <- file.path("results")
+dir.create(RESULTS_DIR, showWarnings = FALSE, recursive = TRUE)
+
+# ── Utility: read a results CSV silently ──────────────────────────────────
+read_results <- function(fname) {
+  path <- file.path(RESULTS_DIR, fname)
+  if (!file.exists(path)) {
+    warning(paste("File not found:", path,
+                  "— run main.ipynb first."))
+    return(NULL)
+  }
+  readr::read_csv(path, show_col_types = FALSE)
+}
+```
+
+---
+
+# Scientific Context {.unnumbered}
+
+The **DEPOXY** project investigates peripheral energy expenditure during
+treadmill running under three shoe conditions:
+
+| Code | Shoe | Blocks |
+|------|------|--------|
+| **A** | KipRun KipStorm Foam | 1, 6 |
+| **B** | KipRun KipStorm Carbon | 2, 5 |
+| **C** | Prototype (non-commercialized) | 3, 4 |
+
+The **ABCCBA counterbalanced design** controls for order and fatigue effects by
+mirroring the shoe sequence. Six 5-minute running blocks are separated by
+5-minute recoveries. Each condition is repeated twice; condition-level estimates
+are the mean of the two trials.
+
+**Primary outcomes:** VO₂, FC (heart rate), TSI/SmO₂, HHb, O₂Hb, and vertical
+ground reaction force.
+
+---
+
+# Data Import {#data-import}
+
+```{r load-merged}
+# ── PRIMARY DATA SOURCE ───────────────────────────────────────────────────
+# all_data_merged.csv is the single authoritative dataset produced by the
+# Python pipeline (main.ipynb, Section 14).  It contains:
+#   • Block-level physiological metrics (VO2, HR, TSI, HHb, AUC, slopes …)
+#   • Participant metadata (participant_id, session_date, shoe_order,
+#     block speeds, RPE values, and any future columns such as ATT)
+#
+# If the file does not exist yet, a synthetic placeholder is generated so
+# the Rmd knits without error during template validation.
+# ---------------------------------------------------------------------------
+
+merged_path <- file.path(DATA_DIR, "all_data_merged.csv")
+
+if (file.exists(merged_path)) {
+  block_df <- readr::read_csv(merged_path, show_col_types = FALSE) |>
+    mutate(condition = factor(condition, levels = c("A", "B", "C")))
+  cat(sprintf("✓ all_data_merged.csv loaded: %d rows × %d columns\n",
+              nrow(block_df), ncol(block_df)))
+} else {
+  # ── synthetic placeholder (run main.ipynb to generate the real file) ───
+  warning("all_data_merged.csv not found — using synthetic placeholder data.")
+  set.seed(42)
+  block_df <- tibble(
+    block           = 1:6,
+    condition       = factor(c("A","B","C","C","B","A"), levels=c("A","B","C")),
+    shoe_name       = c("KipRun Foam","KipRun Carbon","Prototype",
+                        "Prototype","KipRun Carbon","KipRun Foam"),
+    VO2_mean        = c(1000,1040,880,870,1035,1010) + rnorm(6, 0, 20),
+    HR_mean         = c(152,158,145,148,156,150)     + rnorm(6, 0, 3),
+    TSI_mean        = c(58,62,61,60,63,57)           + rnorm(6, 0, 1.5),
+    HHb_mean        = c(-3,-1,0.3,0.2,-1.2,-2.8)    + rnorm(6, 0, 0.3),
+    O2Hb_mean       = c(12,14,13,12.5,14.5,11.5)    + rnorm(6, 0, 0.5),
+    Force_mean      = c(850,870,860,855,865,845)     + rnorm(6, 0, 10),
+    VO2_auc         = VO2_mean * 150,
+    HR_auc          = HR_mean  * 150,
+    TSI_auc         = TSI_mean * 150,
+    HHb_auc         = HHb_mean * 150,
+    TSI_slope       = c(-0.002,-0.001,-0.003,-0.0025,-0.0015,-0.002),
+    HHb_slope       = c( 0.001, 0.001, 0.002, 0.002,  0.001,  0.001),
+    FC_drift        = c( 0.8,   1.1,   0.6,   0.7,    1.0,    0.9),
+    step_freq_bpm   = c(168,170,167,168,171,169),
+    n_steps         = c(840,850,835,840,855,845),
+    # metadata columns (placeholder values)
+    participant_id  = "LEPLAT_Allan",
+    session_date    = as.Date("2026-02-20"),
+    shoe_order      = "ABCCBA",
+    speed           = c(12,12,12,12,12,12),
+    rpe             = c(12,13,11,11,13,12)
+  )
+}
+
+# ── Load statistical output tables (produced by Python pipeline) ──────────
+anova_df     <- read_results("anova_results.csv")
+posthoc_df   <- read_results("posthoc_bonferroni.csv")
+friedman_df  <- read_results("friedman_test.csv")
+corr_df      <- read_results("pairwise_correlations.csv")
+corr_mat_raw <- read_results("correlation_matrix.csv")
+normality_df <- read_results("normality_tests.csv")
+baseline_df  <- read_results("baseline_comparison.csv")
+
+# Reconstruct condition-level summary from block_df (no need for separate CSV)
+condition_df <- block_df |>
+  group_by(condition) |>
+  summarise(
+    across(where(is.numeric), list(mean = ~mean(., na.rm = TRUE),
+                                   sd   = ~sd(.,   na.rm = TRUE)),
+           .names = "{.col}_{.fn}"),
+    .groups = "drop"
+  )
+```
+
+---
+
+# Participant Metadata {#metadata}
+
+```{r metadata-table}
+# Display all metadata columns present in the merged file.
+# New columns (e.g. adipose_tissue_thickness) appear automatically.
+meta_cols <- c("participant_id", "session_date", "shoe_order",
+               intersect(names(block_df),
+                         c("speed", "rpe", "adipose_tissue_thickness",
+                           # add any future column names here or leave
+                           # the intersect to catch them automatically:
+                           grep("^(?!block|condition|shoe|VO2|HR|TSI|HHb|O2|Force|auc|slope|drift|step|n_)",
+                                names(block_df), value = TRUE, perl = TRUE))))
+
+meta_display <- block_df |>
+  distinct(across(any_of(meta_cols)))
+
+if (ncol(meta_display) > 0 && nrow(meta_display) > 0) {
+  meta_display |>
+    nice_kable("Participant metadata (from all_data_merged.csv)")
+} else {
+  cat("No participant-level metadata columns detected in all_data_merged.csv.")
+}
+```
+
+```{r block-metadata-table}
+# Block-specific metadata: speed and RPE per block (and any future block vars)
+block_meta_cols <- intersect(names(block_df),
+                              c("block", "condition", "shoe_name",
+                                "speed", "rpe", "adipose_tissue_thickness"))
+if (length(block_meta_cols) > 2) {
+  block_df |>
+    select(all_of(block_meta_cols)) |>
+    nice_kable("Block-level metadata (speed, RPE, …)")
+}
+```
+
+---
+
+# Descriptive Statistics {#descriptive}
+
+## Block-level overview
+
+```{r block-table}
+block_df |>
+  select(block, condition, shoe_name,
+         any_of(c("VO2_mean","HR_mean","TSI_mean","HHb_mean","Force_mean"))) |>
+  rename_with(~ case_match(.,
+    "block"      ~ "Block",
+    "condition"  ~ "Condition",
+    "shoe_name"  ~ "Shoe",
+    "VO2_mean"   ~ "VO₂ (mL/min)",
+    "HR_mean"    ~ "FC (bpm)",
+    "TSI_mean"   ~ "TSI (%)",
+    "HHb_mean"   ~ "HHb (µM)",
+    "Force_mean" ~ "Peak Force (N)",
+    .default = .
+  )) |>
+  nice_kable("Block-level steady-state means (primary outcomes)")
+```
+
+## Condition-level summary (A / B / C)
+
+```{r condition-summary}
+block_df |>
+  group_by(condition) |>
+  summarise(
+    across(any_of(c("VO2_mean","HR_mean","TSI_mean","HHb_mean","Force_mean")),
+           list(mean = ~mean(., na.rm = TRUE),
+                sd   = ~sd(.,   na.rm = TRUE)),
+           .names = "{.col}_{.fn}"),
+    .groups = "drop"
+  ) |>
+  nice_kable("Condition-level means ± SD (averaged across two trials)")
+```
+
+---
+
+# Visualisations {#viz}
+
+## Primary Outcomes by Condition
+
+```{r fig-boxplots, fig.height=9, fig.cap="Physiological responses by shoe condition. Each point = one running block trial."}
+vars_info <- list(
+  list(col = "VO2_mean",   label = "VO₂ (mL/min)"),
+  list(col = "HR_mean",    label = "FC / HR (bpm)"),
+  list(col = "TSI_mean",   label = "TSI / SmO₂ (%)"),
+  list(col = "HHb_mean",   label = "HHb (µM)"),
+  list(col = "O2Hb_mean",  label = "O₂Hb (µM)"),
+  list(col = "Force_mean", label = "Peak Force (N)")
+)
+
+bp_plots <- lapply(vars_info, function(v) {
+  if (!v$col %in% names(block_df)) return(NULL)
+  ggplot(block_df, aes(x = condition, y = .data[[v$col]],
+                        fill = condition, colour = condition)) +
+    geom_boxplot(alpha = 0.35, outlier.shape = NA,
+                 width = 0.5, linewidth = 0.7) +
+    geom_jitter(width = 0.1, size = 3.5, alpha = 0.85) +
+    scale_fill_manual(values = PALETTE)   +
+    scale_colour_manual(values = PALETTE) +
+    labs(title = v$label, x = "Condition", y = v$label) +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "none",
+          plot.title = element_text(face = "bold", size = 10))
+})
+bp_plots <- Filter(Negate(is.null), bp_plots)
+p_box <- patchwork::wrap_plots(bp_plots, ncol = 3)
+p_box
+ggsave(file.path(RESULTS_DIR, "R_Fig1_Condition_Boxplots.png"),
+       p_box, width = 14, height = 9, dpi = 180)
+```
+
+## Area Under Curve by Condition
+
+```{r fig-auc, fig.height=4, fig.cap="Mean AUC ± SD per condition."}
+auc_vars <- intersect(c("VO2_auc","HR_auc","TSI_auc","HHb_auc"), names(block_df))
+auc_labels <- c(VO2_auc="VO₂ AUC", HR_auc="FC AUC",
+                TSI_auc="TSI AUC", HHb_auc="HHb AUC")
+
+p_auc <- block_df |>
+  select(condition, all_of(auc_vars)) |>
+  pivot_longer(-condition, names_to = "Variable", values_to = "AUC") |>
+  mutate(Variable = recode(Variable, !!!auc_labels)) |>
+  group_by(condition, Variable) |>
+  summarise(mean = mean(AUC, na.rm = TRUE),
+            sd   = sd(AUC,   na.rm = TRUE),
+            .groups = "drop") |>
+  ggplot(aes(x = condition, y = mean, fill = condition)) +
+    geom_col(colour = "black", linewidth = 0.4, alpha = 0.85) +
+    geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.25) +
+    scale_fill_manual(values = PALETTE) +
+    facet_wrap(~Variable, scales = "free_y", nrow = 1) +
+    labs(title = "Area Under Curve by Condition",
+         x = "Condition", y = "AUC") +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "none",
+          strip.text = element_text(face = "bold"))
+p_auc
+ggsave(file.path(RESULTS_DIR, "R_Fig2_AUC_By_Condition.png"),
+       p_auc, width = 12, height = 4, dpi = 180)
+```
+
+## Signal Slopes by Condition
+
+```{r fig-slopes, fig.height=4, fig.cap="Mean linear slopes ± SD. FC drift in bpm/min; TSI and HHb slopes in units/s."}
+slope_vars <- intersect(c("TSI_slope","HHb_slope","FC_drift"), names(block_df))
+slope_labels <- c(TSI_slope = "TSI slope (units/s)",
+                  HHb_slope = "HHb slope (units/s)",
+                  FC_drift  = "FC drift (bpm/min)")
+
+p_slopes <- block_df |>
+  select(condition, all_of(slope_vars)) |>
+  pivot_longer(-condition, names_to = "Variable", values_to = "slope") |>
+  mutate(Variable = recode(Variable, !!!slope_labels)) |>
+  group_by(condition, Variable) |>
+  summarise(mean = mean(slope, na.rm = TRUE),
+            sd   = sd(slope,   na.rm = TRUE),
+            .groups = "drop") |>
+  ggplot(aes(x = condition, y = mean, fill = condition)) +
+    geom_col(colour = "black", linewidth = 0.4, alpha = 0.85) +
+    geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = 0.25) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+    scale_fill_manual(values = PALETTE) +
+    facet_wrap(~Variable, scales = "free_y", nrow = 1) +
+    labs(title = "Signal Slopes by Shoe Condition",
+         x = "Condition", y = "Slope") +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "none",
+          strip.text = element_text(face = "bold"))
+p_slopes
+ggsave(file.path(RESULTS_DIR, "R_Fig3_Slopes_By_Condition.png"),
+       p_slopes, width = 12, height = 4, dpi = 180)
+```
+
+## Baseline Recovery
+
+```{r fig-baseline, fig.height=4, fig.cap="Initial vs final baseline per metric. Δ = Final − Initial."}
+if (!is.null(baseline_df)) {
+  p_bl <- baseline_df |>
+    pivot_longer(c(Baseline_Initial, Baseline_Final),
+                 names_to = "Phase", values_to = "Value") |>
+    mutate(Phase = recode(Phase,
+                          Baseline_Initial = "Initial",
+                          Baseline_Final   = "Final")) |>
+    ggplot(aes(x = Phase, y = Value, fill = Phase)) +
+      geom_col(colour = "black", linewidth = 0.4, alpha = 0.85, width = 0.5) +
+      scale_fill_manual(values = c(Initial = "#455A64", Final = "#F57F17")) +
+      geom_text(data = baseline_df,
+                aes(x = 1.5,
+                    y = pmax(Baseline_Initial, Baseline_Final, na.rm = TRUE) * 1.05,
+                    label = sprintf("Δ = %+.2f", Delta_Final_minus_Initial)),
+                inherit.aes = FALSE, size = 3.2, colour = "grey20") +
+      facet_wrap(~Metric, scales = "free_y") +
+      labs(title = "Baseline Comparison: Initial vs Final",
+           x = "Phase", y = "Value") +
+      theme_minimal(base_size = 11) +
+      theme(legend.position = "none",
+            strip.text = element_text(face = "bold"))
+  p_bl
+  ggsave(file.path(RESULTS_DIR, "R_Fig4_Baseline_Comparison.png"),
+         p_bl, width = 12, height = 4, dpi = 180)
+} else {
+  cat("Baseline comparison data not available — run main.ipynb first.")
+}
+```
+
+## Correlation Scatter Plots
+
+```{r fig-corr-scatter, fig.height=7, fig.cap="Required pairwise scatter plots with linear regression line."}
+pairs_to_plot <- list(
+  list(x = "VO2_mean",  y = "TSI_mean",   xl = "VO₂ (mL/min)", yl = "TSI (%)"),
+  list(x = "VO2_mean",  y = "HHb_mean",   xl = "VO₂ (mL/min)", yl = "HHb (µM)"),
+  list(x = "VO2_mean",  y = "HR_mean",    xl = "VO₂ (mL/min)", yl = "FC (bpm)"),
+  list(x = "HR_mean",   y = "Force_mean", xl = "FC (bpm)",      yl = "Peak Force (N)")
+)
+
+scatter_plots <- lapply(pairs_to_plot, function(p) {
+  if (!all(c(p$x, p$y) %in% names(block_df))) return(NULL)
+  r_val <- cor(block_df[[p$x]], block_df[[p$y]], use = "complete.obs")
+  ggplot(block_df, aes(x = .data[[p$x]], y = .data[[p$y]], colour = condition)) +
+    geom_point(size = 4, alpha = 0.85) +
+    geom_smooth(method = "lm", se = TRUE, colour = "grey30",
+                linewidth = 0.8, linetype = "dashed",
+                inherit.aes = FALSE,
+                aes(x = .data[[p$x]], y = .data[[p$y]])) +
+    scale_colour_manual(values = PALETTE) +
+    annotate("text", x = -Inf, y = Inf,
+             label = sprintf("r = %.2f", r_val),
+             hjust = -0.1, vjust = 1.5, size = 3.8,
+             colour = "grey20", fontface = "italic") +
+    labs(x = p$xl, y = p$yl, colour = "Condition") +
+    theme_minimal(base_size = 11) +
+    theme(legend.position = "bottom",
+          legend.title = element_text(face = "bold"))
+})
+scatter_plots <- Filter(Negate(is.null), scatter_plots)
+p_scatter <- patchwork::wrap_plots(scatter_plots, ncol = 2)
+p_scatter
+ggsave(file.path(RESULTS_DIR, "R_Fig5_Correlation_Scatter.png"),
+       p_scatter, width = 12, height = 7, dpi = 180)
+```
+
+## Correlation Heatmap
+
+```{r fig-corr-heatmap, fig.height=6, fig.cap="Full Pearson correlation matrix (block-level metrics)."}
+if (!is.null(corr_mat_raw)) {
+  cm_long <- corr_mat_raw |>
+    tibble::rownames_to_column("Var1") |>
+    pivot_longer(-Var1, names_to = "Var2", values_to = "r")
+
+  p_heatmap <- ggplot(cm_long, aes(x = Var1, y = Var2, fill = r)) +
+    geom_tile(colour = "white", linewidth = 0.5) +
+    geom_text(aes(label = round(r, 2)), size = 2.8) +
+    scale_fill_gradient2(low  = "#E63946", mid  = "white", high = "#2A9D8F",
+                         midpoint = 0, limits = c(-1, 1), name = "r") +
+    labs(title = "Correlation Matrix — Block-Level Metrics",
+         x = NULL, y = NULL) +
+    theme_minimal(base_size = 10) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          panel.grid  = element_blank())
+  p_heatmap
+  ggsave(file.path(RESULTS_DIR, "R_Fig6_Correlation_Heatmap.png"),
+         p_heatmap, width = 10, height = 6, dpi = 180)
+}
+```
+
+---
+
+# Statistical Analyses {#stats}
+
+## Normality Tests (Shapiro-Wilk)
+
+```{r normality-table}
+if (!is.null(normality_df)) {
+  normality_df |>
+    mutate(normal = ifelse(normal, "✓ Yes", "✗ No")) |>
+    nice_kable("Shapiro-Wilk normality test (block-level observations)")
+}
+```
+
+## Repeated-Measures ANOVA (lmerTest)
+
+```{r lme4-anova}
+# Artificial repeat structure: rep1 = first occurrence of each condition,
+# rep2 = second occurrence (ABCCBA design has exactly 2 per condition).
+condition_long <- block_df |>
+  mutate(repeat_id = case_when(
+    block %in% c(1, 2, 3) ~ "rep1",
+    TRUE                   ~ "rep2"
+  ))
+
+lme_targets <- intersect(
+  c("VO2_mean","HR_mean","TSI_mean","HHb_mean",
+    "VO2_auc","HR_auc","TSI_slope","HHb_slope","FC_drift"),
+  names(block_df)
+)
+
+lme_results <- lapply(lme_targets, function(var) {
+  df_mod <- condition_long |>
+    select(condition, repeat_id, value = all_of(var)) |>
+    drop_na()
+  if (nrow(df_mod) < 4) return(NULL)
+  tryCatch({
+    m <- lmerTest::lmer(value ~ condition + (1 | repeat_id), data = df_mod)
+    broom.mixed::tidy(m) |>
+      filter(effect == "fixed") |>
+      mutate(variable = var, .before = 1) |>
+      select(variable, term, estimate, std.error, statistic, p.value)
+  }, error = function(e) NULL)
+})
+
+lme_table <- bind_rows(Filter(Negate(is.null), lme_results))
+if (nrow(lme_table) > 0) {
+  lme_table_out <- lme_table |>
+    mutate(across(where(is.numeric), round, 4),
+           p.value = ifelse(p.value < 0.001, "<0.001",
+                            as.character(round(p.value, 4))))
+  lme_table_out |>
+    nice_kable("Linear mixed-effects model (lmerTest): condition effect estimates")
+  readr::write_csv(lme_table, file.path(RESULTS_DIR, "R_lme_results.csv"))
+}
+```
+
+## Post-hoc Comparisons — emmeans (Bonferroni)
+
+```{r emmeans}
+em_results <- lapply(lme_targets, function(var) {
+  df_mod <- condition_long |>
+    select(condition, repeat_id, value = all_of(var)) |>
+    drop_na()
+  if (nrow(df_mod) < 4) return(NULL)
+  tryCatch({
+    m  <- lmerTest::lmer(value ~ condition + (1 | repeat_id), data = df_mod)
+    em <- emmeans::emmeans(m, "condition")
+    emmeans::contrast(em, method = "pairwise", adjust = "bonferroni") |>
+      broom::tidy() |>
+      mutate(variable = var, .before = 1)
+  }, error = function(e) NULL)
+})
+
+em_table <- bind_rows(Filter(Negate(is.null), em_results))
+if (nrow(em_table) > 0) {
+  em_out <- em_table |>
+    select(variable, contrast, estimate, std.error, statistic, adj.p.value) |>
+    mutate(across(where(is.numeric), round, 4),
+           adj.p.value = ifelse(adj.p.value < 0.001, "<0.001",
+                                as.character(round(adj.p.value, 4))))
+  em_out |>
+    nice_kable("Post-hoc pairwise comparisons (emmeans, Bonferroni correction)")
+  readr::write_csv(em_table, file.path(RESULTS_DIR, "R_emmeans_posthoc.csv"))
+}
+```
+
+## Python ANOVA Import (η² & Cohen's d)
+
+```{r python-anova}
+if (!is.null(anova_df) && nrow(anova_df) > 0) {
+  anova_df |>
+    select(any_of(c("Variable","F","p_value","eta_sq","significant"))) |>
+    nice_kable("Repeated-measures ANOVA (Python statsmodels) with η²")
+}
+if (!is.null(posthoc_df) && nrow(posthoc_df) > 0) {
+  posthoc_df |>
+    select(any_of(c("Variable","Comparison","t_stat",
+                    "p_bonferroni","cohens_d","significant"))) |>
+    nice_kable("Post-hoc Bonferroni pairwise tests with Cohen's d (Python)")
+}
+```
+
+## Friedman Non-parametric Test
+
+```{r friedman}
+if (!is.null(friedman_df) && nrow(friedman_df) > 0) {
+  friedman_df |>
+    mutate(significant = ifelse(significant, "Yes", "No")) |>
+    nice_kable("Friedman test (non-parametric robustness check — Python)")
+} else {
+  # Fall back to R-side Friedman
+  fr_results <- lapply(lme_targets, function(var) {
+    wide <- block_df |>
+      select(condition, value = all_of(var)) |>
+      drop_na() |>
+      group_by(condition) |>
+      mutate(rep = row_number()) |>
+      pivot_wider(names_from = condition, values_from = value)
+    if (ncol(wide) < 4) return(NULL)
+    mat <- wide |> select(-rep) |> as.matrix()
+    tryCatch({
+      ft <- friedman.test(mat)
+      tibble(Variable   = var,
+             statistic  = round(ft$statistic, 3),
+             p_value    = round(ft$p.value, 4),
+             significant = ft$p.value < 0.05)
+    }, error = function(e) NULL)
+  })
+  fr_table <- bind_rows(Filter(Negate(is.null), fr_results))
+  if (nrow(fr_table) > 0) {
+    fr_table |>
+      mutate(significant = ifelse(significant, "Yes", "No")) |>
+      nice_kable("Friedman test (R-computed)")
+    readr::write_csv(fr_table, file.path(RESULTS_DIR, "R_friedman_results.csv"))
+  }
+}
+```
+
+---
+
+# Correlation Analysis {#correlations}
+
+```{r corr-pairs}
+if (!is.null(corr_df)) {
+  corr_df |>
+    mutate(interpretation = case_when(
+      abs(r) >= 0.7 ~ "Strong",
+      abs(r) >= 0.4 ~ "Moderate",
+      TRUE          ~ "Weak"
+    )) |>
+    nice_kable("Pairwise Pearson correlations (block level, n = 6)")
+}
+```
+
+---
+
+# Discussion {#discussion}
+
+## VO₂ and Running Economy
+
+Differences in VO₂ between conditions at an identical running speed directly
+reflect differences in running economy. Carbon-plate footwear (condition B) is
+hypothesized to reduce metabolic cost through elastic energy storage and return;
+a lower VO₂ for B relative to A and C would support this mechanism.
+
+## Cardiovascular Response (FC / HR)
+
+Heart rate is treated as a full physiological modality rather than a secondary
+descriptor. The cardiac drift slope (bpm/min) captures cumulative cardiovascular
+loading across the block — a steeper positive drift signals greater strain under
+that shoe condition, which has implications for pacing and fatigue during
+prolonged efforts.
+
+## Muscle Oxygenation Dynamics
+
+The TSI oxygenation slope quantifies the rate at which peripheral O₂ extraction
+outpaces delivery. A steeper negative slope indicates faster deoxygenation under
+that condition. O₂Hb (= HbTot − HHb) provides a complementary index of bound
+oxygen availability. Recovery slopes (from the recovery blocks) indicate how
+quickly the muscle re-oxygenates when running stops.
+
+## Baseline Recovery
+
+Comparing initial and final baselines tests whether cumulative fatigue has
+altered resting physiology by the end of the protocol. Persistent VO₂ elevation
+or TSI depression at the final baseline would indicate incomplete recovery
+between Blocks 5–6 and the final rest, and should be flagged as a confounder.
+
+## Forward-Compatibility Note
+
+The pipeline is designed so that adding new variables — such as
+adipose tissue thickness (ATT) for NIRS signal correction — requires no
+code changes. Any new column in `Summary_file_DEPOXY_Project.csv` propagates
+automatically through `load_participant_metadata()`, `merge_metadata_with_block_data()`,
+and into `all_data_merged.csv`, after which it appears in this report's
+metadata tables without modification.
+
+## Statistical Limitations
+
+With a single participant and n = 2 repetitions per condition, all inferential
+statistics are exploratory. Effect sizes (η², Cohen's d) serve as inputs for
+future sample-size planning rather than as confirmatory evidence. The Friedman
+test provides a non-parametric sanity check that does not assume normality or
+sphericity.
+
+---
+
+# Session Information {.unnumbered}
+
+```{r session-info, echo=FALSE}
+sessionInfo()
+```
+
+---
+
+*Report generated from `main.Rmd` · data source: `data/all_data_merged.csv`*  
+*DEPOXY Project | Baptiste AUGROS | Master STAPS IEAP 2026*
