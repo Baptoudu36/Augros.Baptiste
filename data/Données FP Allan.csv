@@ -1,0 +1,10 @@
+Due to the large size of the force-plate dataset, the file cannot be hosted directly on GitHub.
+
+It is therefore provided via an open-access Google Drive link for the subject LEPLAT Allan, required to fully run the R and Python notebooks:
+
+https://drive.google.com/file/d/1jqL7KQI9zYLx_VKepTDGp9bGdf7xI97Y/view?usp=sharing
+
+After downloading, please place the file in the following directory:
+data/
+
+at the same level as the NIRS, COSMED, and HR datasets.
