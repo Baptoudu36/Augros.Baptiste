@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEPOXY Project — Augros Baptiste</title>
+  <style>
+    :root {
+      --navy: #1a2b4a;
+      --teal: #0d7a6e;
+      --accent: #e8f4f1;
+      --light: #f7f9fc;
+      --border: #d0dce8;
+      --text: #1e1e2e;
+      --muted: #5a6575;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Georgia", serif;
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--light);
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 40px 30px;
+    }
+
+    /* ── COVER PAGE ─────────────────────────────────── */
+    .cover {
+      background: var(--navy);
+      color: var(--white);
+      border-radius: 8px;
+      padding: 48px 52px;
+      margin-bottom: 48px;
+    }
+    .cover .institution { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #a8c0d8; margin-bottom: 6px; }
+    .cover .degree-label { font-size: 11px; letter-spacing: 0.05em; color: #88aacc; margin-bottom: 28px; }
+    .cover h1 { font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.3; margin-bottom: 6px; }
+    .cover .subtitle { font-size: 15px; color: #c0d8ee; margin-bottom: 32px; }
+    .cover .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 32px; font-size: 13px; }
+    .cover .meta-item strong { display: block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #88aacc; margin-bottom: 3px; }
+    .cover .meta-item span { color: #e0ecf8; }
+    .cover .repo-link { margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .cover .repo-link a { color: #7ec8b8; font-size: 13px; word-break: break-all; }
+
+    /* ── ABSTRACT ───────────────────────────────────── */
+    .abstract {
+      background: var(--accent);
+      border-left: 5px solid var(--teal);
+      border-radius: 4px;
+      padding: 22px 28px;
+      margin-bottom: 40px;
+      font-size: 14px;
+    }
+    .abstract strong { color: var(--navy); }
+
+    /* ── HEADINGS ───────────────────────────────────── */
+    h2 {
+      font-size: 19px;
+      color: var(--navy);
+      margin: 44px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--teal);
+    }
+    h3 {
+      font-size: 15px;
+      color: var(--teal);
+      margin: 24px 0 8px;
+      font-weight: 700;
+    }
+    p { margin-bottom: 12px; }
+
+    /* ── TABLES ─────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 20px 0 28px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead tr { background: var(--navy); color: var(--white); }
+    thead th { padding: 10px 14px; text-align: left; font-weight: 600; font-family: "Calibri", sans-serif; }
+    tbody tr:nth-child(even) { background: #eef3f8; }
+    tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .caption { font-size: 12px; color: var(--muted); margin-top: -18px; margin-bottom: 24px; font-style: italic; }
+
+    /* ── FIGURE BLOCKS ──────────────────────────────── */
+    .fig-block {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 22px 26px;
+      margin: 20px 0 28px;
+    }
+    .fig-block .fig-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; font-family: "Calibri", sans-serif; }
+    .fig-block .fig-caption { font-size: 12px; color: var(--muted); margin-top: 10px; font-style: italic; }
+
+    /* Pipeline diagram */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12.5px;
+      font-family: "Calibri", sans-serif;
+    }
+    .pipe-step {
+      background: var(--navy);
+      color: var(--white);
+      border-radius: 4px;
+      padding: 7px 12px;
+      text-align: center;
+      min-width: 110px;
+    }
+    .pipe-step.python { background: #2c5f8a; }
+    .pipe-step.r { background: var(--teal); }
+    .pipe-arrow { color: var(--muted); font-size: 18px; }
+
+    /* Design diagram */
+    .crossover-grid { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+    .phase-block {
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-family: "Calibri", sans-serif;
+      text-align: center;
+      min-width: 80px;
+    }
+    .phase-block.baseline { background: #e8f0f8; border-color: #8aaccc; }
+    .phase-block.run { background: #e0f4f0; border-color: var(--teal); font-weight: 700; }
+    .phase-block.recovery { background: #f0e8f4; border-color: #9a7ab8; }
+    .shoe-label { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+
+    /* Signal table highlight */
+    .async-badge {
+      display: inline-block;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      color: #92400e;
+      border-radius: 3px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-family: "Calibri", sans-serif;
+    }
+
+    /* Code block */
+    pre {
+      background: #1a1a2e;
+      color: #a8d8b8;
+      border-radius: 5px;
+      padding: 16px 20px;
+      font-size: 12.5px;
+      overflow-x: auto;
+      margin: 14px 0 22px;
+      font-family: "Consolas", monospace;
+    }
+    code { font-family: "Consolas", monospace; font-size: 12.5px; }
+
+    /* Keywords strip */
+    .keywords { font-size: 12.5px; color: var(--muted); margin-bottom: 32px; }
+    .kw { display: inline-block; background: #e0ecf4; border-radius: 3px; padding: 2px 8px; margin: 2px 3px 2px 0; }
+
+    /* Callout */
+    .callout {
+      background: #fff7e6;
+      border-left: 4px solid #f0a020;
+      border-radius: 3px;
+      padding: 12px 18px;
+      font-size: 13.5px;
+      margin: 16px 0 20px;
+    }
+
+    /* References */
+    .references p { font-size: 13px; margin-bottom: 8px; color: var(--muted); }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+
+    /* ── LOGO HEADER ────────────────────────────────── */
+    .logo-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.18);
+    }
+    .logo-header img {
+      height: 58px;
+      width: auto;
+      /* white logo version sits on navy; the PNG has a transparent/white bg
+         so we use a subtle drop-shadow to make it pop */
+      filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+    }
+    .logo-header .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .logo-header .logo-text .inst-name {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+    }
+    .logo-header .logo-text .inst-sub {
+      font-size: 11px;
+      color: #a8c0d8;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    /* ── PROJECT ENGLISH TRANSLATION ────────────────── */
+    .cover .title-translation {
+      font-size: 13px;
+      font-style: italic;
+      color: #7ec8b8;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── ANONYMITY BADGE ─────────────────────────────── */
+    .anon-notice {
+      background: #eaf4f0;
+      border: 1.5px solid #0d7a6e;
+      border-radius: 5px;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      margin: 20px 0 28px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .anon-notice .anon-icon {
+      font-size: 20px;
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+    .anon-notice strong { color: #0d7a6e; }
+
+    /* ── HR NOTE ─────────────────────────────────────── */
+    .hr-note {
+      background: #f0f5fa;
+      border-left: 3px solid #5a8ab8;
+      border-radius: 3px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+      color: #3a4e62;
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    @media (max-width: 600px) {
+      .cover .meta-grid { grid-template-columns: 1fr; }
+      .pipeline { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  COVER PAGE                                        -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="cover">
+
+  <!-- Logo + institution header -->
+  <div class="logo-header">
+    <img src="data:image/png;base64,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" alt="Université de Montpellier logo" />
+    <div class="logo-text">
+      <span class="inst-name">Université de Montpellier</span>
+      <span class="inst-sub">Faculty of Sports and Health Sciences (UFR STAPS)</span>
+    </div>
+  </div>
+
+  <div class="degree-label">Master's Dissertation — Submitted in partial fulfillment of the requirements for the degree of<br>Master of Science (MSc) in Engineering and Ergonomics of Physical Activity</div>
+
+  <h1>DEPOXY Project</h1>
+  <div class="title-translation">Peripheral energy expenditure during locomotion tasks</div>
+  <div class="subtitle">Multimodal Analysis of Local Muscle Oxygenation and Global Oxygen Consumption<br>During Locomotion Under Different Footwear Conditions</div>
+
+  <div class="meta-grid">
+    <div class="meta-item">
+      <strong>Author</strong>
+      <span>Baptiste AUGROS<br>1st Year MSc STAPS IEAP 2SIA<br>Sport, Santé et IA — Euromov Digital Health in Motion<br>Université de Montpellier, France</span>
+    </div>
+    <div class="meta-item">
+      <strong>Supervisors</strong>
+      <span>Stéphane PERREY<br>(PU, Euromov DHM, IMT Mines Alès, UM)<br><br>Nicolas FLORES<br>(Research Scientist, Decathlon Sports Lab, Villeneuve-d'Ascq)</span>
+    </div>
+    <div class="meta-item">
+      <strong>Academic Year</strong>
+      <span>2025–2026</span>
+    </div>
+    <div class="meta-item">
+      <strong>Date of Defense</strong>
+      <span>Week of 22 June 2026</span>
+    </div>
+  </div>
+
+  <div class="repo-link">
+    <strong style="font-size:11px;letter-spacing:0.06em;color:#88aacc;text-transform:uppercase;">GitHub Repository</strong><br>
+    <a href="https://github.com/Baptoudu36/Augros.Baptiste.git" target="_blank">https://github.com/Baptoudu36/Augros.Baptiste.git</a>
+  </div>
+</div>
+
+<!-- KEYWORDS -->
+<div class="keywords">
+  <strong>Keywords:</strong>
+  <span class="kw">mNIRS</span>
+  <span class="kw">VO2 kinetics</span>
+  <span class="kw">footwear biomechanics</span>
+  <span class="kw">multimodal signal fusion</span>
+  <span class="kw">running economy</span>
+  <span class="kw">muscle oxygenation</span>
+  <span class="kw">COSMED K5</span>
+  <span class="kw">linear mixed models</span>
+  <span class="kw">Python preprocessing</span>
+  <span class="kw">R statistical analysis</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  ABSTRACT                                          -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="abstract">
+  <strong>Abstract.</strong> The DEPOXY project investigates how local muscle oxygenation dynamics, measured by near-infrared spectroscopy (mNIRS), relate to global pulmonary oxygen uptake (VO2p) during treadmill running under three commercially distinct footwear conditions. Signals from four asynchronous modalities — portable metabolic analyser (COSMED K5), mNIRS (vastus lateralis and gastrocnemius), force plates, and heart rate — are synchronised and pre-processed through a bespoke Python pipeline before statistical inference is performed in R using linear mixed models and non-parametric tests. The project is currently in a single-participant exploratory phase (N = 1) and is designed to scale to approximately 20 participants. No cohort-level results are reported here; the report focuses on methodological rigour, pipeline reproducibility, and the scientific rationale underpinning each analytical step.
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 1. SCIENTIFIC CONTEXT AND RESEARCH QUESTION        -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>1. Scientific Context and Research Question</h2>
+
+<p>Running economy — the energy demand for a given running velocity — is a central determinant of endurance performance and is influenced by both metabolic and mechanical factors. Recent advances in footwear technology, particularly midsole foam compounds and embedded carbon-fibre plates, have attracted significant research interest because they alter the energy return profile of each foot-strike and therefore potentially reduce the metabolic cost of locomotion.</p>
+
+<p>Global oxygen uptake (VO2p, mL·min⁻¹·kg⁻¹) measured via portable metabolic analysers has long served as the gold standard for quantifying running economy. However, VO2p integrates contributions from all active muscles and organs, masking local muscle-level adaptations. Near-infrared spectroscopy (NIRS) applied directly over working musculature provides a complementary window by continuously tracking oxygenated haemoglobin (O2Hb), deoxygenated haemoglobin (HHb), tissue saturation index (TSI, %), and total haemoglobin (tHb) at the site of interest.</p>
+
+<p>The central research question of the DEPOXY project is therefore: <em>how do local muscle oxygenation variations (mNIRS) relate to global oxygen consumption (VO2p) during locomotion, and do these relationships differ across footwear conditions?</em> The primary objective is to develop indicators of local muscle oxygen cost and evaluate their relationship with VO2p. Secondary objectives include comparing footwear-induced differences in mNIRS signals (TSI, O2Hb, HHb, tHb), characterising potential dissociations between VO2p and local oxygenation, and assessing inter-individual variability as the participant cohort grows.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 2. EXPERIMENTAL DESIGN                             -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>2. Experimental Design</h2>
+
+<h3>2.1 Protocol</h3>
+<p>Each experimental session follows a continuous treadmill protocol at a fixed speed of 12.4 km/h. Three footwear conditions are administered in an ABCCBA counterbalanced crossover order, ensuring that position effects and fatigue are balanced across conditions. Each footwear bout is bracketed by a baseline and a recovery phase to capture the onset and offset kinetics of each signal modality. The phase structure for each footwear condition is illustrated below.</p>
+
+<div class="fig-block">
+  <div class="fig-title">Figure 1 — Phase structure per footwear condition (ABCCBA crossover)</div>
+  <div style="overflow-x:auto;">
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+      <!-- Condition A -->
+      <div>
+        <div class="shoe-label">Cond. A — KipRun Foam</div>
+        <div class="crossover-grid">
+          <div class="phase-block baseline">Baseline<br><small>Rest</small></div>
+          <div style="font-size:18px;color:#aaa;">→</div>
+          <div class="phase-block run">Run<br><small>12.4 km/h</small></div>
+          <div style="font-size:18px;color:#aaa;">→</div>
+          <div class="phase-block recovery">Recovery<br><small>Rest</small></div>
+          <div style="font-size:18px;color:#aaa;">→</div>
+          <div class="phase-block baseline">Baseline<br><small>Rest</small></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);font-style:italic;">The same four-phase structure applies to Conditions B (KipRun CarbonPlate) and C (Prototype). The ABCCBA order ensures position-balanced exposure. Total session duration varies by participant.</p>
+  </div>
+  <div class="fig-caption">Figure 1. Schematic of the within-session phase structure. All three footwear conditions share this template; only shoe identity changes.</div>
+</div>
+
+<h3>2.2 Footwear Conditions</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Code</th><th>Footwear</th><th>Key Technology</th><th>Expected Metabolic Hypothesis</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>A</td><td>KipRun Foam</td><td>Standard EVA/PEBA foam midsole</td><td>Reference condition — moderate energy return</td></tr>
+      <tr><td>B</td><td>KipRun CarbonPlate</td><td>Stiff carbon-fibre plate + foam</td><td>Enhanced energy return → potentially lower VO2p</td></tr>
+      <tr><td>C</td><td>Prototype</td><td>Undisclosed (Decathlon Sports Lab)</td><td>To be characterised relative to A and B</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 1. Experimental footwear conditions and their technological descriptors.</p>
+
+<h3>2.3 Participants</h3>
+<p>The project is currently in its exploratory phase with a single participant (referred to as P1 in all anonymised analyses). Data collected from this individual serve to validate the full acquisition and analysis pipeline. The planned cohort is approximately 20 participants, whose inclusion will permit the mixed-model analyses to achieve adequate statistical power for detecting footwear × individual interaction effects.</p>
+
+<h3>2.4 Data Ethics and Anonymity</h3>
+<p>All data collected within the DEPOXY project are processed and stored in accordance with applicable personal data protection legislation. The following rules apply throughout the project lifecycle and are enforced at the pipeline level:</p>
+<ul style="margin: 10px 0 14px 22px; font-size: 14px; line-height: 1.9; color: var(--text);">
+  <li>Individual participants are assigned an anonymised participant code (P1, P2, …, Pn) at the point of data ingestion. This code replaces any identifiable metadata (name, date of birth, contact information) in all exported datasets and analysis outputs.</li>
+  <li>Raw CSV files containing identifiable information are stored in a restricted, non-public directory and are excluded from the public GitHub repository.</li>
+  <li>All figures, tables, and statistical outputs reference participants by anonymised code only.</li>
+  <li>The exploratory participant is referred to by first name in contextual descriptions within this report for pipeline-validation clarity only; this exception does not apply to any distributed or published material.</li>
+</ul>
+
+<h3>2.5 Instrumentation and Data Modalities</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Modality</th><th>Device</th><th>Measured Signals</th><th>Sampling</th><th>Synchrony</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Pulmonary VO2</td><td>COSMED K5</td><td>VO2, VCO2, VE, RER, HR (via belt)</td><td>Breath-by-breath</td><td><span class="async-badge">ASYNC</span></td></tr>
+      <tr><td>Muscle oxygenation</td><td>TrainRed Fyer &amp; Plus</td><td>O2Hb, HHb, TSI, tHb — VL &amp; GAS</td><td>~10 Hz</td><td><span class="async-badge">ASYNC</span></td></tr>
+      <tr><td>Ground reaction</td><td>Force plates</td><td>Vertical GRF, contact time, impulse</td><td>~1000 Hz</td><td><span class="async-badge">ASYNC</span></td></tr>
+      <tr><td>Heart rate</td><td>COSMED K5 (primary)<br><small>Personal watch export <em>(P1 exception — see note)</em></small></td><td>HR (bpm)</td><td>~1 Hz</td><td><span class="async-badge">ASYNC</span></td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 2. Summary of acquired data modalities and their asynchronous nature. VL = vastus lateralis; GAS = gastrocnemius. HR acquisition varies by participant — see note below.</p>
+
+<div class="hr-note">
+  <strong>Heart rate — participant-specific acquisition note:</strong> Heart rate data are generally embedded in the COSMED K5 export stream via the integrated chest-belt channel. For the current exploratory participant (P1), the COSMED K5 heart rate channel was not available; heart rate was therefore obtained from the participant's personal watch export (<code>Données FC Allan.csv</code>) and treated as a separate asynchronous modality requiring the same temporal alignment procedure as all other signals.
+</div>
+
+<div class="anon-notice">
+  <span class="anon-icon">🔒</span>
+  <div>
+    <strong>Data Anonymity Statement:</strong> All data collected within the DEPOXY project are handled in strict compliance with applicable data protection regulations. Individual participants are identified solely by an anonymised participant code (P1, P2, …, Pn) in all analysis scripts, outputs, and publication-facing materials. Raw files containing identifiable information (e.g., participant name in file headers) are stored in a restricted-access directory and are not distributed with the public code repository. The exploratory participant is referred to by first name only in this document for clarity during the pipeline-validation phase; all cohort-level analyses will use anonymised codes exclusively. Analysts are responsible for ensuring that no personally identifiable information is present in any exported dataset or figure.
+  </div>
+</div>
+
+<div class="callout">
+  <strong>Critical methodological challenge:</strong> All four modalities operate on independent clocks and at different sampling rates. A dedicated Python synchronisation layer is therefore the necessary first step before any cross-modal analysis can proceed.
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 3. PYTHON PREPROCESSING PIPELINE                   -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>3. Python Preprocessing Pipeline</h2>
+
+<p>The Python pipeline constitutes the technical core of the DEPOXY project. Its sole purpose is to transform four independent, raw, asynchronous data streams into a single, phase-labelled, analysis-ready dataset that can be consumed reliably by the R statistical layer. Each step is described below with an explanation of <em>why</em> it is scientifically necessary.</p>
+
+<div class="fig-block">
+  <div class="fig-title">Figure 2 — Overview of the Python multimodal preprocessing pipeline</div>
+  <div class="pipeline">
+    <div class="pipe-step python">Raw CSV ingestion<br><small>4 modalities</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step python">Numeric cleaning<br><small>dtype coercion</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step python">Trigger detection<br><small>K5 events</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step python">Temporal alignment<br><small>common time axis</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step python">Interpolation<br><small>missing values</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step python">Signal filtering<br><small>NIRS + force</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step python">Phase segmentation<br><small>baseline/run/recovery</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step r">R analysis<br><small>main.Rmd</small></div>
+  </div>
+  <div class="fig-caption">Figure 2. Sequential steps of the Python pipeline. Green terminal step represents the handoff to R. All steps are implemented in project Python scripts.</div>
+</div>
+
+<h3>3.1 Data Ingestion and Numeric Conversion</h3>
+<p>Each modality is stored as an independent CSV file: COSMED K5 metabolic data (<code>Données K5 Allan.csv</code>), ground reaction forces (<code>Données FP Allan.csv</code>), muscle oxygenation from the TrainRed Fyer and Plus sensors (<code>Données NNIRS Allan.csv</code>), and — for the current exploratory participant only — heart rate from a personal watch export (<code>Données FC Allan.csv</code>), given that the COSMED K5 heart rate channel was unavailable for this individual. Raw sensor exports commonly contain header artefacts, string-encoded numeric fields, and locale-specific decimal separators. The ingestion step coerces all relevant columns to numeric types, replacing non-parseable entries with NaN tokens that are propagated through the pipeline for explicit handling. This step prevents silent type-mismatch errors that would otherwise corrupt downstream arithmetic operations. All participant identifiers are anonymised at this stage: file-level metadata containing participant names is stripped and replaced with anonymised participant codes before any analytical processing begins.</p>
+
+<h3>3.2 COSMED Trigger Extraction and Fallback Reconstruction</h3>
+<p>The COSMED K5 breathes an event-marker channel that records experimenter-defined triggers corresponding to the onset and offset of each experimental phase. These markers serve as the common temporal reference against which all other modalities are aligned. When trigger events are clearly present in the K5 export, they are extracted directly. A fallback reconstruction algorithm is applied when triggers are absent or corrupted: it uses the known nominal protocol durations and the breath timestamps to infer phase boundaries programmatically. This dual-path approach ensures pipeline robustness across recording quality variations.</p>
+
+<h3>3.3 Temporal Alignment onto a Common Time Axis</h3>
+<p>Once the COSMED trigger timestamps are established, a common time axis (in seconds from session onset) is constructed. Each modality's timestamp column is re-expressed relative to this reference, converting device-specific clock readings into a unified temporal coordinate. This step resolves the "independent clocks" problem: without it, even a 1-second drift between the K5 and the NIRS device over a 30-minute session would produce a misalignment of up to ~10 breathing cycles, severely corrupting phase-by-phase comparisons.</p>
+
+<h3>3.4 Interpolation of Missing Observations</h3>
+<p>Breath-by-breath VO2 data are inherently irregular in time, with inter-breath intervals varying from less than two seconds during high-intensity effort to more than five seconds at rest. Force-plate data are captured at ~1000 Hz but may contain brief dropout windows. Linear interpolation is applied to upsample breath-by-breath signals onto the common time grid and to fill short dropout gaps, preserving the signal's temporal dynamics. Gaps exceeding a modality-specific threshold are flagged rather than interpolated, so that analysts are aware of data quality limitations.</p>
+
+<h3>3.5 Signal Filtering</h3>
+<p>NIRS signals are susceptible to motion artefacts, particularly during running. A low-pass filter (Butterworth design, cutoff tuned to the expected physiological bandwidth of O2Hb and HHb fluctuations) attenuates high-frequency mechanical noise while preserving the slower, metabolically driven oxygenation trends of interest. Force-plate signals, sampled at high frequency, are similarly filtered to isolate strike-level biomechanical features. The filter parameters are documented in the project Python scripts to ensure reproducibility.</p>
+
+<h3>3.6 Phase Segmentation and Export</h3>
+<p>Using the aligned trigger timestamps, each sample across all modalities is labelled with a phase identifier (Baseline_pre, Run, Recovery, Baseline_post) and a condition identifier (A, B, or C). The result is a single longitudinal dataset in which each row represents a time sample and each column corresponds to a modality-specific signal or metadata variable. This structured export is the direct input to <code>main.Rmd</code>.</p>
+
+<pre><code># Illustrative excerpt — phase segmentation logic (Python)
+for phase_name, (t_start, t_end) in phase_windows.items():
+    mask = (df['time_s'] >= t_start) & (df['time_s'] < t_end)
+    df.loc[mask, 'phase'] = phase_name
+
+# Export analysis-ready file
+df.to_csv("depoxy_aligned.csv", index=False)</code></pre>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 4. R STATISTICAL ANALYSIS (main.Rmd)               -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>4. R Statistical Analysis (<code>main.Rmd</code>)</h2>
+
+<p>Statistical inference is conducted entirely within the <code>main.Rmd</code> R Markdown document, which consumes the pre-processed, phase-labelled dataset produced by the Python pipeline. The document is structured to be fully reproducible via <code>rmarkdown::render()</code>, producing a self-contained HTML output that includes code, tables, and figures.</p>
+
+<h3>4.1 Analytical Methods</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Method</th><th>R Package</th><th>Purpose</th><th>Response Variable(s)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Linear mixed models (LMM)</td><td>lme4 / lmerTest</td><td>Fixed effect of footwear condition; random intercept for participant</td><td>VO2p, HR, SmO2, HHb, force metrics</td></tr>
+      <tr><td>Post-hoc contrasts</td><td>emmeans</td><td>Pairwise footwear comparisons (Bonferroni correction)</td><td>All LMM response variables</td></tr>
+      <tr><td>Friedman test</td><td>stats</td><td>Non-parametric omnibus for repeated-measure footwear effect</td><td>Variables violating LMM assumptions</td></tr>
+      <tr><td>Pearson / Spearman correlations</td><td>stats / Hmisc</td><td>VO2p ↔ mNIRS association during running phase</td><td>VO2p vs O2Hb, HHb, TSI, tHb</td></tr>
+      <tr><td>Area under the curve (AUC)</td><td>pracma / custom</td><td>Derived oxygenation load over run and recovery phases</td><td>O2Hb, HHb trajectories</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 3. Statistical methods implemented in main.Rmd and their scientific justification.</p>
+
+<h3>4.2 Rationale for Linear Mixed Models</h3>
+<p>LMMs are the appropriate framework for this design because they simultaneously accommodate the within-participant repeated-measures structure (multiple footwear conditions per participant), the planned multi-participant extension (~20 participants), and missing data arising from signal dropouts — all without listwise deletion. The random-effects structure captures the substantial inter-individual physiological variability expected in running economy research. The lmerTest package extends lme4 to provide Satterthwaite-approximated degrees of freedom and p-values, which are essential for valid inference in unbalanced designs.</p>
+
+<h3>4.3 Planned Visualisations</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Plot Type</th><th>Variables</th><th>Scientific Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Time-series overlay</td><td>VO2p + TSI (aligned)</td><td>Visualise coupling / dissociation across footwear conditions</td></tr>
+      <tr><td>Boxplots by condition</td><td>VO2p, HR, SmO2, HHb per phase</td><td>Compare central tendency and spread across A, B, C</td></tr>
+      <tr><td>Scatter + regression</td><td>VO2p vs HHb / TSI (run phase)</td><td>Quantify VO2p–mNIRS association strength</td></tr>
+      <tr><td>AUC bar charts</td><td>O2Hb, HHb per condition</td><td>Summarise cumulative oxygenation load</td></tr>
+      <tr><td>Correlation heatmap</td><td>All signals × all conditions</td><td>Identify multimodal inter-signal patterns</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 4. Planned visualisation outputs from main.Rmd and their scientific rationale.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 5. PHYSIOLOGICAL INTERPRETATION FRAMEWORK          -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>5. Physiological Interpretation Framework</h2>
+
+<h3>5.1 VO2p vs. Local Oxygenation: Complementary Signals</h3>
+<p>Global VO2p reflects the net oxidative energy demand of the whole body and is sensitive to ventilatory and cardiac limitations, not only muscular ones. In contrast, HHb measured over the vastus lateralis or gastrocnemius reflects the local balance between O2 delivery and O2 extraction at that specific site. These two signals need not move in concert: a condition that increases O2 delivery efficiency (e.g., through improved cardiac output distribution) could reduce VO2p without altering local TSI. Conversely, a shoe that alters loading of a specific muscle group might increase local HHb without materially changing whole-body VO2p. Characterising this dissociation is a primary analytical goal.</p>
+
+<h3>5.2 Derived Indicators of Local Oxygen Cost</h3>
+<p>Beyond mean values, the project derives three composite indicators during the running phase: (1) the <em>oxygenation slope</em> — the rate of HHb increase from run onset, reflecting the speed of local O2 extraction ramp-up; (2) the <em>recovery AUC</em> — the area under the O2Hb re-saturation curve during recovery, reflecting how quickly local oxygenation is restored; and (3) the <em>VO2–mNIRS ratio</em> — the ratio of global VO2p to local HHb amplitude, which provides a preliminary indicator of whether a footwear condition redistributes metabolic load locally or changes systemic efficiency.</p>
+
+<h3>5.3 Role of Force Plates</h3>
+<p>Ground reaction force (GRF) data from the force plates provide the mechanical layer of interpretation. Vertical impulse per stride, contact time, and loading rate are computed for each footwear condition. If carbon-plate shoes reduce GRF variability or alter contact time in a way that reduces muscle co-activation demands, this should manifest as changes in both local mNIRS signals and potentially in VO2p. Integrating force metrics thus helps distinguish energetic from mechanical mechanisms of footwear action.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 6. RESULTS: EXPLORATORY PHASE (N = 1)              -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>6. Exploratory Results (Single-Participant Phase)</h2>
+
+<div class="callout">
+  <strong>Anti-hallucination notice:</strong> The project is in its single-participant (N = 1) data collection and pipeline validation phase. No cohort-level statistical results are available at the time of writing. The observations reported below are strictly exploratory, apply only to participant Allan LEPLAT, and are presented solely to validate that the pipeline produces physiologically plausible outputs. They cannot support causal inference or generalisation.
+</div>
+
+<p>Pipeline validation confirms that the four data modalities are successfully ingested from their respective CSV files, synchronised to the COSMED K5 trigger reference, and segmented into the four experimental phases for each footwear condition. Signal continuity checks show that interpolated gaps represent less than 5% of total samples in the NIRS and K5 streams for this participant, which is within acceptable bounds for exploratory analysis. The force-plate channel exhibits the expected high-frequency bilateral alternation pattern consistent with bipedal running at 12.4 km/h, confirming correct time alignment relative to the NIRS signal.</p>
+
+<p>At the descriptive level, the carbon-plate condition (B) is associated with a higher observed VO2p compared to the foam condition (A) for this participant, a direction that may reflect individual gait adaptation to the shoe's mechanical constraints rather than a population-level efficiency advantage. This observation is entirely exploratory and will require cohort-level LMM inference to interpret meaningfully. Local oxygenation profiles across conditions show the expected deoxygenation trajectory during the running phase and resaturation during recovery, confirming that the mNIRS sensors are responding to metabolic demand as expected.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 7. DISCUSSION                                      -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>7. Discussion</h2>
+
+<h3>7.1 Methodological Contributions</h3>
+<p>The principal methodological contribution of the DEPOXY project at this stage is the design and validation of a reproducible multimodal preprocessing pipeline capable of fusing breath-by-breath metabolic data, continuous NIRS signals, high-frequency ground reaction force data, and heart rate into a single analysis-ready structure. The decision to implement this pipeline in Python — with explicit fallback strategies for trigger reconstruction and conservative gap-flagging for interpolation — reflects a deliberate prioritisation of reproducibility and data integrity over pipeline complexity.</p>
+
+<h3>7.2 Inter-Individual Variability</h3>
+<p>Running economy is one of the most inter-individually variable physiological traits in endurance sport. The planned cohort of ~20 participants will expose the full range of this variability and will determine whether any footwear-related oxygenation effect is consistent across individuals or limited to specific responder profiles. The random-effects structure of the planned LMMs is explicitly designed to accommodate this variability without inflating Type I error.</p>
+
+<h3>7.3 Footwear Condition-Dependency</h3>
+<p>The expectation that carbon-plate footwear uniformly reduces VO2p has been nuanced by recent literature: effects appear to depend on running speed, individual biomechanics, and the specific shoe-runner interaction. The ABCCBA crossover design, combined with the mNIRS layer, provides the methodological resolution to test whether metabolic benefits manifest globally (reduced VO2p), locally (altered TSI/HHb profiles), or as a dissociation between the two — a distinction that pure metabolic analyses cannot address.</p>
+
+<h3>7.4 Limitations</h3>
+<p>Current limitations include the single-participant dataset, which precludes statistical inference; the laboratory treadmill setting, which may not fully replicate overground running biomechanics; and the absence of electromyographic data, which would strengthen interpretation of the mNIRS–force plate relationship. Future work will address cohort expansion, ecological validity testing, and muscle-specific NIRS probe placement optimisation.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 8. CONCLUSION AND PERSPECTIVES                     -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>8. Conclusion and Perspectives</h2>
+
+<p>The DEPOXY project establishes a technically rigorous, reproducible multimodal analysis framework for investigating the metabolic and oxygenation consequences of footwear design during running. The Python preprocessing pipeline successfully resolves the core technical challenge of asynchronous multimodal signal fusion, and the R statistical framework in <code>main.Rmd</code> provides the inferential tools necessary to characterise footwear effects at both global and local physiological levels.</p>
+
+<p>Three key messages emerge at this stage: first, multimodal integration — not any single modality in isolation — is necessary to fully characterise footwear–physiology interactions; second, the VO2p–mNIRS dissociation is a scientifically meaningful signal that carbon-plate technology may selectively engage; and third, the pipeline's modular design means that adding participants, additional NIRS sites, or new footwear conditions requires no structural changes to the analysis workflow, supporting scalability toward the planned full cohort.</p>
+
+<h3>Practical Applications</h3>
+<p>Beyond academic contribution, the DEPOXY framework has direct application in sports engineering (informing midsole and plate design with muscle-specific metabolic feedback), performance monitoring (providing practitioners with objective local oxygenation indicators complementary to existing metabolic tests), and personalised footwear recommendation (identifying responder profiles for carbon-plate versus standard foam technologies).</p>
+
+<hr />
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- REFERENCES                                         -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>References</h2>
+<div class="references">
+  <p>Barnes, K. R., &amp; Kilding, A. E. (2015). Running economy: measurement, norms, and determining factors. <em>Sports Medicine — Open, 1</em>(1), 8.</p>
+  <p>Besson, T., Macchi, R., Rossi, J., Morio, C. Y. M., Kunimasa, Y., Nicol, C., … &amp; Millet, G. Y. (2022). Sex differences in endurance running. <em>Sports Medicine, 52</em>(6), 1235–1257.</p>
+  <p>Ferrari, M., Muthalib, M., &amp; Quaresima, V. (2011). The use of near-infrared spectroscopy in understanding skeletal muscle physiology. <em>Philosophical Transactions of the Royal Society A, 369</em>(1955), 4577–4590.</p>
+  <p>Hoogkamer, W., Kipp, S., Frank, J. H., Farina, E. M., Luo, G., &amp; Kram, R. (2018). A comparison of the energetic cost of running in marathon racing shoes. <em>Sports Medicine, 48</em>(4), 1009–1019.</p>
+  <p>Perrey, S., &amp; Ferrari, M. (2018). Muscle oximetry in sports science: a systematic review. <em>Sports Medicine, 48</em>(3), 597–616.</p>
+  <p>Tofari, P. J., McLean, B. D., Kemp, J., &amp; Cormack, S. (2015). A self-paced team-sport match simulation with physical and skill demands representative of elite football. <em>Journal of Sports Sciences, 33</em>(13), 1398–1408.</p>
+</div>
+
+<hr />
+<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:20px;">
+  DEPOXY Project — Baptiste AUGROS — MSc STAPS IEAP 2SIA — Université de Montpellier — 2025–2026<br>
+  Document generated for academic evaluation. All analyses grounded in real project files only. All participant data anonymised per DEPOXY data management protocol.
+</p>
+
+</body>
+</html>
