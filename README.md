@@ -8,7 +8,7 @@
 | **Course** | Python – R – Git |
 | **Institution** | Master STAPS IEAP - 2SIA Track |
 | **Year** | 2025 – 2026 |
-| **Raw data** | [Google Drive](https://drive.google.com/file/d/1jqL7KQI9zYLx_VKepTDGp9bGdf7xI97Y/view?usp=sharing) |
+| **Raw data (FP only)** | See the following link on [Google Drive](https://drive.google.com/file/d/1jqL7KQI9zYLx_VKepTDGp9bGdf7xI97Y/view?usp=sharing) |
 
 ---
 
