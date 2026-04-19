@@ -1,6 +1,6 @@
 # DEPOXY Project
 
-**Multimodal physiological signal analysis during incremental exercise : muscle oxygenation, force output, metabolic demand, and cardiac response**
+**Multimodal physiological signal analysis during treadmill running tasks : linking muscle oxygenation (mNIRS) and pulmonary oxygen uptake (VO₂) to assess global and local energy expenditure under different footwear conditions**
 
 | | |
 |---|---|
@@ -12,9 +12,11 @@
 
 ---
 
-## Scientific Question
+## Scientific Questions :
 
-Does the NIRS-derived deoxygenation breakpoint (Sd) correspond temporally and functionally to the ventilatory threshold (VT1) detected from breath-by-breath gas exchange? Are these two physiological markers synchronised, or do they reflect distinct mechanisms of oxygen supply-demand regulation?
+  To what extent can local muscle oxygenation responses measured using mNIRS predict or explain variations in global energy expenditure assessed from pulmonary oxygen uptake (VO₂) during treadmill running?
+
+  How do different footwear conditions influence the relationship between local muscle oxygenation and global metabolic cost?
 
 ---
 
@@ -41,7 +43,8 @@ Augros.Baptiste/
 │   ├── statistics.py         # Python-side correlations and exports
 │   ├── visualization.py      # Matplotlib/Seaborn publication figures
 │
-├── Summary file DEPOXY Project # Summarizes all informations about the participants │                                 (not used here but will be used for               │                                  reproducibility in my futur pipeline)
+├── Summary file DEPOXY Project # Summarizes all informations about the             │                                 participants (not used here but will be useful
+│                                 for reproducibility in my futur pipeline)
 │
 ├── LICENCE
 │
@@ -59,13 +62,13 @@ Augros.Baptiste/
 
 ---
 
-## Data Sources
+## Data Sources (see the external Google Drive link on top of the project) :
 
-Because raw physiological files exceed GitHub's file size limits, all raw data are stored externally.
+Because forceplate files exceed GitHub's file size limits, all mechanical data are stored externally.
 
-**Google Drive (raw dataset):** https://drive.google.com/file/d/1jqL7KQI9zYLx_VKepTDGp9bGdf7xI97Y/view?usp=sharing
+**Google Drive link (raw mechanical forceplate dataset):** https://drive.google.com/file/d/1jqL7KQI9zYLx_VKepTDGp9bGdf7xI97Y/view?usp=sharing
 
-Place downloaded files into `data/raw/` before running the pipeline.
+Place downloaded files into `data/` subfolder before running the pipeline.
 
 The four modalities collected are listed below.
 
@@ -74,7 +77,13 @@ The four modalities collected are listed below.
 | Force plate (Kistler / AMTI) | Fz, Fx, Fy (N) | 1000 Hz | `Données FP Allan.csv` |
 | NIRS (Moxy / Artinis) | SmO2 (%), [O2Hb], [HHb] (µM) | 10–50 Hz | `Données IRS Allan.csv` |
 | COSMED K5 | VO2, VCO2, VE, RER (breath-by-breath) | ~0.2–0.4 Hz | `Données K5 Allan.csv` |
-| Polar H10 / chest strap | HR (bpm), R-R interval (ms) | 1 Hz / ~250 Hz | `Données FC Allan.csv` |
+| Subject smartwatch (used during pre-test due to HR chest strap malfunction) | Heart rate (HR, bpm) | 1 Hz | `Données FC Allan.csv` |
+
+**Note:** During the pre-test session, heart rate (HR) data were extracted from the participant’s smartwatch due to connection issues with the chest strap normally used in the experimental protocol. 
+
+During the actual experimental sessions (I finished the tests on Thursday, April the 16th), heart rate data were recorded directly within the COSMED system and stored as a column in the metabolic data file. 
+
+As a result, four data files were processed for the pre-test session, whereas only three files were required for the experimental sessions.
 
 ---
 
@@ -84,19 +93,24 @@ The processing pipeline is fully scripted in Python 3.10 and follows a strict st
 
 **Step 1 — Loading (`load_data.py`):** ingests all raw files, normalises column names, and converts timestamps to seconds relative to a common origin.
 
-**Step 2 — Synchronisation (`synchronization.py`):** detects the hardware trigger pulse embedded in the force-plate file, computes per-device time offsets using cross-correlation, and resamples all streams to 100 Hz using `scipy.signal.resample_poly()`.
+**Step 2 — Synchronisation (`synchronization.py`):** detects the hardware trigger pulse used as temporal reference, aligns all devices by computing relative time offsets from the trigger event, and resamples all signals to a common sampling rate of 100 Hz using `scipy.signal.resample_poly()`..
 
-**Step 3 — Filtering (`filtering.py`):** applies signal-appropriate zero-phase Butterworth low-pass filters via `scipy.signal.sosfiltfilt()`. Cut-off frequencies are: force = 50 Hz, NIRS = 0.1 Hz, HR = 0.05 Hz. VO2 uses a 5-point rolling median followed by a 0.03 Hz Butterworth.
+**Step 3 — Filtering (`filtering.py`):** applies signal-specific zero-phase Butterworth low-pass filters using `scipy.signal.sosfiltfilt()`. Cut-off frequencies were selected based on the physiological bandwidth of each signal : force = 50 Hz, NIRS = 0.1 Hz, HR = 0.1 Hz. VO₂ data were pre-smoothed using a 5-point rolling median filter followed by a 0.03 Hz low-pass Butterworth filter.
 
-**Step 4 — Segmentation (`segmentation.py`):** splits the continuous recording into exercise stages using protocol timestamp metadata. Stage onset and offset are detected automatically.
+## Step 4 — Segmentation (`segmentation.py`)
+  Continuous recordings are split into predefined experimental phases using synchronized protocol timestamps (Cosmed K5, force plates, mNIRS). Stage onset and offset are automatically detected from event markers to ensure temporal alignment across all systems. Stage onset and offset are automatically detected based on event markers defined during the experimental protocol, ensuring temporal alignment across all measurement modalities. This procedure ensures a consistent extraction of comparable data segments for subsequent analyses.
 
-**Step 5 — Feature extraction (`features.py`):** computes mean, SD, slope, and peak values per stage for each modality. The NIRS deoxygenation breakpoint (Sd) is detected via double-linear segmented regression using `scipy.optimize.curve_fit()`.
+## Step 5 — Feature extraction (`features.py`)
+  Computes mean, standard deviation, slope, and peak values for each modality and stage. The NIRS deoxygenation breakpoint (Sd) is estimated using a double-linear segmented regression approach based on nonlinear optimization (`scipy.optimize.curve_fit()`).
 
-**Step 6 — Statistics (`statistics.py`):** runs Pearson and Spearman correlations (via `pingouin`) between threshold estimates.
+## Step 6 — Statistics (`statistics.py`)
+  Performs Pearson and Spearman correlation analyses between threshold estimates using the `pingouin` statistical package.
 
-**Step 7 — Visualisation (`visualization.py`):** generates all figures and csv (time series, Bland-Altman, correlation scatter plots, boxplots...) saved in results folder as CSV, PNG...
+## Step 7 — Visualisation (`visualization.py`)
+  Generates all figures (time series, Bland–Altman plots, correlation scatter plots, boxplots, etc.) and exports results as CSV and PNG files stored in the results directory.
 
-**Step 8 — R analysis (`main.Rmd`):** fits linear mixed-effects models with `lme4`/`lmerTest`, runs repeated-measures ANOVA with `afex`, and applies Bonferroni-corrected post-hoc tests.
+## Step 8 — R analysis (`main.Rmd`)
+  Linear mixed-effects models are fitted using `lme4` and `lmerTest`. Repeated-measures ANOVA is performed with `afex`, followed by Bonferroni-corrected post-hoc tests for multiple comparisons.
 
 ---
 
@@ -146,6 +160,8 @@ The NIRS-derived deoxygenation breakpoint (Sd) and the ventilatory threshold (VT
 # ============================================================================
 # For a full reproducible environment use environment.yml with conda:
 #
+#  1) Crate the appropriate environnemnt : 
+#
 #   conda env create -f environment.yml
 #   conda activate depoxy
 #
@@ -155,6 +171,23 @@ The NIRS-derived deoxygenation breakpoint (Sd) and the ventilatory threshold (VT
 #
 # Note: conda is strongly preferred because it resolves binary dependencies
 # (numpy, scipy, matplotlib) more reliably than pip on all platforms.
+# -----------------------------------------------------------------------------
+# 2) Run Python analysis (`main.ipynb`)
+#
+#     ```bash
+#      jupyter notebook main.ipynb
+#
+#     Then run all notebook cells in order.
+# -----------------------------------------------------------------------------
+# 3) Run R notebok "main.Rmd" report :
+#
+#   From RStudio (open main.Rproj) or from terminal:
+#
+#    ```bash
+#    Rscript -e "rmarkdown::render('main.Rmd')"
+#
+#    Then run all notebook cells in order.
+```
 # ============================================================================
 
 # ── Data manipulation ────────────────────────────────────────────────────────
@@ -235,39 +268,6 @@ This project is submitted for academic evaluation (Master STAPS IEAP, 2025–202
 
 - results/: output folder kept empty in versioned project state.
 - results/ (runtime): populated only after running main.ipynb and main.Rmd end-to-end.
-
-## Quick Start
-
-### 1) Python environment
-
-Conda (recommended):
-
-```bash
-conda env create -f environment.yml
-conda activate depoxy
-```
-
-pip alternative:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2) Run Python analysis
-
-```bash
-jupyter notebook main.ipynb
-```
-
-Then run all notebook cells in order.
-
-### 3) Run R report
-
-From RStudio (open main.Rproj) or from terminal:
-
-```bash
-Rscript -e "rmarkdown::render('main.Rmd')"
-```
 
 ## Important Notes
 
