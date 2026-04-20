@@ -1,10 +1,14 @@
-Due to the large size of the force-plate dataset, the file cannot be hosted directly on GitHub.
+Due to the large size of the force-plate (FP) dataset, the file is not directly hosted on GitHub.
+To handle this, you have two options :
 
-It is therefore provided via an open-access Google Drive link for the subject LEPLAT Allan, required to fully run the R and Python notebooks:
+1) Direct loading (recommended) :
 
+The dataset can be accessed and loaded directly from an open-access Google Drive link without needing to download it locally :
 https://drive.google.com/file/d/1jqL7KQI9zYLx_VKepTDGp9bGdf7xI97Y/view?usp=sharing
 
-After downloading, please place the file in the following directory:
-data/
+This approach allows you to run the R and Python notebooks without manually storing the file on your machine.
 
+2) Manual download (alternative) :
+
+If preferred, you can download the file from the link above and place it in the following directory : data/
 at the same level as the NIRS, COSMED, and HR datasets.
