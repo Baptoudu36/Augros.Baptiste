@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEPOXY Project — Augros Baptiste</title>
+  <style>
+    :root {
+      --navy: #1a2b4a;
+      --teal: #0d7a6e;
+      --accent: #e8f4f1;
+      --light: #f7f9fc;
+      --border: #d0dce8;
+      --text: #1e1e2e;
+      --muted: #5a6575;
+      --white: #ffffff;
+      --code-bg: #1a1a2e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Georgia", serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--light);
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 40px 30px;
+    }
+
+    /* ── COVER PAGE ─────────────────────────────────── */
+    .cover {
+      background: var(--navy);
+      color: var(--white);
+      border-radius: 8px;
+      padding: 44px 48px;
+      margin-bottom: 40px;
+    }
+    .cover .institution { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #a8c0d8; margin-bottom: 4px; }
+    .cover .degree-label { font-size: 11px; letter-spacing: 0.05em; color: #88aacc; margin-bottom: 24px; }
+    .cover h1 { font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.3; margin-bottom: 4px; }
+    .cover .title-translation { font-size: 13px; font-style: italic; color: #7ec8b8; margin-bottom: 8px; }
+    .cover .subtitle { font-size: 14px; color: #c0d8ee; margin-bottom: 28px; }
+    .cover .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px; font-size: 13px; }
+    .cover .meta-item strong { display: block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #88aacc; margin-bottom: 3px; }
+    .cover .meta-item span { color: #e0ecf8; line-height: 1.5; }
+    .cover .repo-link { margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .cover .repo-link a { color: #7ec8b8; font-size: 13px; word-break: break-all; text-decoration: none; }
+    .cover .repo-link a:hover { text-decoration: underline; }
+    .cover .logo-header { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.18); }
+    .cover .logo-header .inst-name { font-size: 15px; font-weight: 700; letter-spacing: 0.03em; color: #ffffff; }
+    .cover .logo-header .inst-sub { font-size: 11px; color: #a8c0d8; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 3px; display: block; }
+
+    /* ── ABSTRACT ───────────────────────────────────── */
+    .abstract {
+      background: var(--accent);
+      border-left: 5px solid var(--teal);
+      border-radius: 4px;
+      padding: 20px 26px;
+      margin-bottom: 32px;
+      font-size: 14px;
+    }
+    .abstract strong { color: var(--navy); }
+
+    /* ── KEYWORDS ───────────────────────────────────── */
+    .keywords { font-size: 12.5px; color: var(--muted); margin-bottom: 28px; }
+    .kw { display: inline-block; background: #e0ecf4; border-radius: 3px; padding: 2px 8px; margin: 2px 3px 2px 0; }
+
+    /* ── HEADINGS ───────────────────────────────────── */
+    h2 {
+      font-size: 19px;
+      color: var(--navy);
+      margin: 36px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--teal);
+    }
+    h3 {
+      font-size: 15px;
+      color: var(--teal);
+      margin: 22px 0 6px;
+      font-weight: 700;
+    }
+    p { margin-bottom: 10px; text-align: justify; }
+
+    /* ── TABLES ─────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 16px 0 22px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: var(--navy); color: var(--white); }
+    thead th { padding: 9px 12px; text-align: left; font-weight: 600; font-family: "Calibri", sans-serif; }
+    tbody tr:nth-child(even) { background: #eef3f8; }
+    tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .caption { font-size: 12px; color: var(--muted); margin-top: -14px; margin-bottom: 20px; font-style: italic; }
+
+    /* ── FIGURE BLOCKS ──────────────────────────────── */
+    .fig-block {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin: 18px 0 24px;
+    }
+    .fig-block .fig-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; font-family: "Calibri", sans-serif; }
+    .fig-block .fig-caption { font-size: 12px; color: var(--muted); margin-top: 10px; font-style: italic; }
+
+    /* ── PIPELINE ──────────────────────────────────── */
+    .pipeline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; font-family: "Calibri", sans-serif; }
+    .pipe-step { background: #2c5f8a; color: var(--white); border-radius: 4px; padding: 7px 11px; text-align: center; min-width: 105px; }
+    .pipe-step.r { background: var(--teal); }
+    .pipe-arrow { color: var(--muted); font-size: 16px; }
+
+    /* ── PROTOCOL TIMELINE ──────────────────────────── */
+    .timeline { display: flex; align-items: stretch; flex-wrap: nowrap; gap: 3px; overflow-x: auto; font-size: 11px; font-family: "Calibri", sans-serif; padding: 4px 0; }
+    .tl-block { border-radius: 4px; padding: 8px 6px; text-align: center; min-width: 68px; color: var(--white); line-height: 1.3; }
+    .tl-baseline { background: #5a8ab8; }
+    .tl-warmup { background: #8c7aa8; }
+    .tl-recovery { background: #a0a8b8; }
+    .tl-run-A { background: #E63946; }
+    .tl-run-B { background: #2A9D8F; }
+    .tl-run-C { background: #F4A261; color: #1e1e2e; }
+    .tl-block small { display: block; font-size: 10px; opacity: 0.9; margin-top: 2px; }
+
+    /* ── CODE ───────────────────────────────────────── */
+    pre {
+      background: var(--code-bg);
+      color: #a8d8b8;
+      border-radius: 5px;
+      padding: 14px 18px;
+      font-size: 12.5px;
+      overflow-x: auto;
+      margin: 10px 0 18px;
+      font-family: "Consolas", monospace;
+    }
+    code { font-family: "Consolas", monospace; font-size: 12.5px; background: #eef3f8; padding: 1px 5px; border-radius: 3px; }
+    pre code { background: transparent; padding: 0; }
+
+    /* ── CALLOUT ────────────────────────────────────── */
+    .callout {
+      background: #fff7e6;
+      border-left: 4px solid #f0a020;
+      border-radius: 3px;
+      padding: 10px 16px;
+      font-size: 13.5px;
+      margin: 14px 0 18px;
+    }
+
+    /* ── REFERENCES ─────────────────────────────────── */
+    .references p { font-size: 12.5px; margin-bottom: 7px; color: var(--muted); text-align: left; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+    @media (max-width: 640px) {
+      .cover .meta-grid { grid-template-columns: 1fr; }
+      .pipeline { flex-direction: column; align-items: flex-start; }
+      .timeline { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- COVER PAGE                                         -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="logo-header">
+    <div>
+      <span class="inst-name">Université de Montpellier</span>
+      <span class="inst-sub">UFR STAPS — EuroMov Digital Health in Motion</span>
+    </div>
+  </div>
+
+  <div class="degree-label">Master STAPS IEAP — 2SIA Track (Sport, Santé &amp; IA) · Academic Year 2025–2026</div>
+
+  <h1>DEPOXY Project — Technical Report</h1>
+  <div class="title-translation">Peripheral energy expenditure during locomotion tasks</div>
+  <div class="subtitle">Multimodal fusion of pulmonary VO<sub>2</sub>, muscle oxygenation (mNIRS) and ground reaction forces under three footwear conditions</div>
+
+  <div class="meta-grid">
+    <div class="meta-item">
+      <strong>Course</strong>
+      <span>Python – R – Git</span>
+    </div>
+    <div class="meta-item">
+      <strong>Author</strong>
+      <span>Baptiste AUGROS<br>M1 STAPS IEAP — 2SIA</span>
+    </div>
+    <div class="meta-item">
+      <strong>Project Supervisors</strong>
+      <span>Stéphane PERREY (PU, EuroMov DHM)<br>Nicolas FLORES (Decathlon Sports Lab)</span>
+    </div>
+    <div class="meta-item">
+      <strong>Host Laboratory</strong>
+      <span>EuroMov Digital Health in Motion<br>Univ. Montpellier — IMT Mines Alès</span>
+    </div>
+  </div>
+
+  <div class="repo-link">
+    <strong style="font-size:11px;letter-spacing:0.06em;color:#88aacc;text-transform:uppercase;">GitHub Repository</strong><br>
+    <a href="https://github.com/Baptoudu36/Augros.Baptiste.git" target="_blank">https://github.com/Baptoudu36/Augros.Baptiste.git</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- KEYWORDS                                           -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="keywords">
+  <strong>Keywords:</strong>
+  <span class="kw">mNIRS</span>
+  <span class="kw">VO<sub>2</sub> kinetics</span>
+  <span class="kw">running economy</span>
+  <span class="kw">footwear biomechanics</span>
+  <span class="kw">multimodal signal fusion</span>
+  <span class="kw">COSMED K5</span>
+  <span class="kw">Python preprocessing</span>
+  <span class="kw">R mixed models</span>
+  <span class="kw">reproducible pipeline</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- ABSTRACT                                           -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="abstract">
+  <strong>Abstract.</strong> DEPOXY investigates how local muscle oxygenation (mNIRS, Train.red) relates to pulmonary oxygen uptake (VO<sub>2</sub>p, COSMED K5) during submaximal treadmill running under three footwear conditions in an ABCCBA crossover design. Four asynchronous modalities — metabolic (K5), muscle oxygenation (mNIRS over <em>vastus lateralis</em> and medial <em>gastrocnemius</em>), ground reaction forces (instrumented treadmill), and heart rate — are fused through a modular Python pipeline (<code>load → sync → filter → segment → features</code>) before statistical inference is performed jointly in Python (<code>statistics.py</code>) and R (<code>main.Rmd</code>). This report documents the full technical architecture: schema-normalised ingestion, trigger-based synchronisation with automated fallback, auto-tuned zero-phase filtering, protocol-driven phase segmentation, and feature extraction per block and per condition. The pipeline has been validated end-to-end on the pre-test participant dataset and is designed to scale to the ~20-participant target cohort with no structural change.
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 1. PROJECT CONTEXT                                 -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>1. Project Context and Objectives</h2>
+
+<p>Pulmonary VO<sub>2</sub> is the reference indicator of running economy but it aggregates the oxidative demand of the whole organism, masking muscle-specific contributions. Portable mNIRS devices now provide continuous, non-invasive access to local O<sub>2</sub> delivery–extraction balance (TSI, O<sub>2</sub>Hb, HHb, tHb) at the muscle site. The DEPOXY project combines both modalities to test whether local oxygenation indicators derived from mNIRS can explain or predict variations in global energy cost when running shoes are changed — a question of direct interest to both the exercise physiology literature (Perrey et al., 2024) and the industrial partner (Decathlon R&amp;D).</p>
+
+<p>The present deliverable is a <em>technical report</em>. Its primary focus is the data-analysis pipeline: ingestion, synchronisation, filtering, segmentation, feature extraction and statistical infrastructure. Physiological interpretation is kept deliberately brief; cohort-level inference will be reported in the Master's dissertation once acquisition is complete (full cohort: ~20 participants).</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 2. EXPERIMENTAL DESIGN                             -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>2. Experimental Design</h2>
+
+<h3>2.1 Protocol timeline</h3>
+<p>Each session lasts approximately 75 minutes and follows a strictly time-locked template encoded in <code>segmentation.py</code>. The six 5-minute running blocks follow an <strong>ABCCBA mirror-crossover</strong> order, so that each footwear condition is executed twice at symmetric positions in the protocol. This design balances fatigue, familiarisation and order effects across the three conditions.</p>
+
+<div class="fig-block">
+  <div class="fig-title">Figure 1 — DEPOXY protocol timeline (75 min total)</div>
+  <div class="timeline">
+    <div class="tl-block tl-baseline">Baseline<small>5 min</small></div>
+    <div class="tl-block tl-warmup">Warmup<small>10 km/h — 5 min</small></div>
+    <div class="tl-block tl-recovery">Rec.<small>5 min</small></div>
+    <div class="tl-block tl-run-A">Run 1 · A<small>5 min</small></div>
+    <div class="tl-block tl-recovery">Rec.<small>5 min</small></div>
+    <div class="tl-block tl-run-B">Run 2 · B<small>5 min</small></div>
+    <div class="tl-block tl-recovery">Rec.<small>5 min</small></div>
+    <div class="tl-block tl-run-C">Run 3 · C<small>5 min</small></div>
+    <div class="tl-block tl-recovery">Rec.<small>5 min</small></div>
+    <div class="tl-block tl-run-C">Run 4 · C<small>5 min</small></div>
+    <div class="tl-block tl-recovery">Rec.<small>5 min</small></div>
+    <div class="tl-block tl-run-B">Run 5 · B<small>5 min</small></div>
+    <div class="tl-block tl-recovery">Rec.<small>5 min</small></div>
+    <div class="tl-block tl-run-A">Run 6 · A<small>5 min</small></div>
+    <div class="tl-block tl-baseline">Baseline<small>5 min</small></div>
+  </div>
+  <div class="fig-caption">Figure 1. Complete protocol timeline encoded in <code>segmentation.PROTOCOL</code>. Running blocks share a common submaximal target speed defined per participant from their most recent self-reported running performance.</div>
+</div>
+
+<h3>2.2 Footwear conditions</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Code</th><th>Shoe</th><th>Key technology</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>A</td><td>KipRun Foam</td><td>Standard foam midsole</td><td>Reference condition</td></tr>
+      <tr><td>B</td><td>KipRun Carbon</td><td>Carbon-fibre plate + foam</td><td>High-rebound condition</td></tr>
+      <tr><td>C</td><td>Prototype (Decathlon R&amp;D)</td><td>Undisclosed</td><td>Test condition to characterise vs. A/B</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 1. Footwear conditions and their SHOE_CONDITIONS mapping in <code>segmentation.py</code>.</p>
+
+<h3>2.3 Data modalities</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Device</th><th>Signal(s)</th><th>Native sampling</th><th>Source file</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>COSMED K5</td><td>VO<sub>2</sub>, VCO<sub>2</sub>, RER, VE, VT, F<sub>resp</sub>, HR</td><td>Breath-by-breath (≈0.2–0.4 Hz)</td><td><code>Données K5 Allan.csv</code></td></tr>
+      <tr><td>Train.red mNIRS ×2</td><td>TSI, HHb, HbTot (quad + calf)</td><td>10–50 Hz</td><td><code>Données NIRS Allan.csv</code></td></tr>
+      <tr><td>Instrumented treadmill</td><td>Fz from 4 force sensors</td><td>≈1000 Hz</td><td><code>Données FP Allan.csv</code></td></tr>
+      <tr><td>Heart rate (pre-test only)</td><td>HR (bpm)</td><td>1 Hz</td><td><code>Données FC Allan.csv</code></td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 2. Four acquisition modalities. In the final protocol HR is embedded in the K5 export; a standalone HR file was used only for the pre-test because of a chest-strap connection issue.</p>
+
+<div class="callout">
+  <strong>Core technical challenge.</strong> The four devices run on independent clocks and at sampling rates that differ by up to four orders of magnitude (≈0.3 Hz vs. 1000 Hz). A dedicated synchronisation stage is therefore required <em>before</em> any cross-modal comparison is possible.
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 3. PIPELINE ARCHITECTURE                           -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>3. Python Preprocessing Pipeline</h2>
+
+<p>The Python codebase is organised as a flat <code>sources/</code> package of single-responsibility modules. Each module is independently testable (self-<code>__main__</code> validation block) and produces printable diagnostics on success or failure. The pipeline output is an analysis-ready structure consumed jointly by <code>main.ipynb</code> (exploratory, figure generation) and <code>main.Rmd</code> (inferential statistics).</p>
+
+<div class="fig-block">
+  <div class="fig-title">Figure 2 — Module chain of the DEPOXY pipeline</div>
+  <div class="pipeline">
+    <div class="pipe-step">load_data.py<br><small>CSV ingestion</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">synchronization.py<br><small>trigger align</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">filtering.py<br><small>zero-phase LP</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">segmentation.py<br><small>phase labels</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">features.py<br><small>AUC/slope/mean</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step">statistics.py<br><small>ANOVA / corr.</small></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step r">main.Rmd<br><small>LMM / post-hoc</small></div>
+  </div>
+  <div class="fig-caption">Figure 2. Each arrow is a typed DataFrame handoff; no module reaches across the pipeline.</div>
+</div>
+
+<h3>3.1 Data ingestion — <code>load_data.py</code></h3>
+<p>Each CSV uses a different header layout, separator and decimal convention. Dedicated loaders (<code>load_k5_data</code>, <code>load_nirs_data</code>, <code>load_force_plate_data</code>, <code>load_hr_data</code>) auto-detect the header row (e.g. the K5 export hides the <code>t</code> column after multiple metadata rows; the Train.red NIRS file starts its tabular block at line 61), convert European-format decimals with <code>_european_to_float()</code>, and emit a canonical schema per modality (<code>time_sec</code>, <code>VO2_ml_min</code>, <code>TSI_Quad</code>, <code>HHb_Quad</code>, <code>total_force_N</code>, <code>HR_bpm</code>, …). Oxyhaemoglobin is derived as <code>O2Hb = HbTot − HHb</code>. Force-plate voltages are converted to Newtons using a calibration factor (<code>FORCE_CALIBRATION_FACTOR = 100 N/V</code>). The K5 signal is additionally reindexed on a 1-second grid by <code>_impute_k5_time_grid()</code>, with linear interpolation between breaths and padding up to the 75-minute protocol length.</p>
+
+<h3>3.2 Synchronisation — <code>synchronization.py</code></h3>
+<p>The COSMED K5 event channel is the temporal master. <code>find_trigger_time()</code> locates the first non-zero event as t=0; every other modality is then shifted to the same origin. Because an operator can forget to press a trigger or the channel can be noisy, a robust two-level fallback is implemented:</p>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Priority</th><th>Strategy</th><th>Triggered when…</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Explicit event column on each modality</td><td>K5 / NIRS / FP have a usable <code>event</code> column</td></tr>
+      <tr><td>2</td><td><code>infer_manual_trigger_time()</code> — signal-driven</td><td>No event present: detect first sustained deviation in the derivative and level of a modality-specific channel (MAD-robust thresholds)</td></tr>
+      <tr><td>3</td><td>K5 offset reuse</td><td>Inference also fails: use the K5 t<sub>0</sub> as a wall-clock proxy</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 3. Cascading trigger-detection strategy implemented in <code>synchronize_all()</code>.</p>
+
+<p>Pre-trigger samples are dropped (<code>drop_pre_trigger=True</code>). A helper <code>resample_to_common_grid()</code> is available when correlation analyses require a single aligned grid; the default pipeline keeps each modality on its native time axis to preserve information.</p>
+
+<h3>3.3 Filtering — <code>filtering.py</code></h3>
+<p>All filtering is performed with zero-phase Butterworth filters (<code>scipy.signal.butter</code> + <code>filtfilt</code>) to avoid phase distortion of physiological trends. Cut-off frequencies are not hard-coded: a composite quality score (noise reduction minus amplitude-collapse penalty) is computed over a representative channel for each modality and the best candidate is selected automatically.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Modality</th><th>Filter</th><th>Auto-tuned candidates</th><th>Rationale</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>mNIRS</td><td>Butterworth LP (order 4)</td><td>0.06 – 0.12 Hz</td><td>Preserve the slow metabolic trend in TSI/HHb; reject stride-induced motion artefacts</td></tr>
+      <tr><td>Force plate</td><td>Butterworth LP (order 4)</td><td>12 – 30 Hz</td><td>Keep foot-strike waveform; attenuate high-frequency electrical noise</td></tr>
+      <tr><td>COSMED K5</td><td>Centred rolling median</td><td>6 – 12 s window</td><td>Smooth breath-by-breath variability while preserving ramp dynamics</td></tr>
+      <tr><td>Heart rate</td><td>None</td><td>—</td><td>Beat-by-beat signal already decimated to 1 Hz</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 4. Per-modality filtering. Auto-tuning is driven by <code>_choose_best_cutoff()</code> / <code>_choose_best_window()</code>.</p>
+
+<h3>3.4 Phase segmentation — <code>segmentation.py</code></h3>
+<p>The protocol timeline is expressed programmatically by <code>create_protocol_timeline()</code>: a dictionary of phase windows derived from the <code>PROTOCOL</code> constants (baseline 300 s, warmup 300 s, pre-block recovery 300 s, 6 runs of 300 s with 300 s recoveries between them, final baseline 300 s). <code>segment_all_phases()</code> labels every sample with its phase identifier. A dedicated <code>extract_steady_state_from_block()</code> carves out the 2:00–4:30 window of each run — discarding the first 2 minutes (metabolic adaptation) and the final 30 seconds (anticipatory withdrawal) — which is the physiologically defensible window for steady-state averaging.</p>
+
+<pre><code># Steady-state extraction (segmentation.py)
+def extract_steady_state_from_block(df, block_start_sec,
+                                    ss_start_offset=120,
+                                    ss_end_offset=270):
+    ss_start = block_start_sec + ss_start_offset   # 2:00
+    ss_end   = block_start_sec + ss_end_offset     # 4:30
+    return extract_window(df, ss_start, ss_end), {...}</code></pre>
+
+<h3>3.5 Feature extraction — <code>features.py</code></h3>
+<p>Features are computed per block (6 rows per participant) and then aggregated per condition (3 rows: A, B, C) using the <code>CONDITION_MAP</code> = {A:[1,6], B:[2,5], C:[3,4]} to average the two symmetric exposures of each shoe.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Family</th><th>Function</th><th>Outputs</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Descriptive</td><td><code>compute_window_stats</code></td><td>mean, std, min, max, n for any signal</td></tr>
+      <tr><td>Integrals</td><td><code>compute_auc</code> (trapezoidal)</td><td>Cumulative oxygenation / ventilation load</td></tr>
+      <tr><td>Dynamics</td><td><code>compute_slope</code>, <code>compute_fc_drift</code></td><td>Rate of change in VO<sub>2</sub>, HHb, HR</td></tr>
+      <tr><td>Derived metabolic</td><td><code>calculate_energy_cost</code>, <code>calculate_oxygen_pulse</code></td><td>Net VO<sub>2</sub> cost (mL·kg⁻¹·min⁻¹), VO<sub>2</sub>/HR</td></tr>
+      <tr><td>Mechanical</td><td><code>detect_force_peaks</code></td><td>Step frequency (Hz, steps·min⁻¹), peak force mean/std</td></tr>
+      <tr><td>Aggregation</td><td><code>build_block_level_summary</code>, <code>aggregate_by_condition</code></td><td>Long-format block table → wide condition table</td></tr>
+      <tr><td>Baseline drift</td><td><code>compare_baselines</code></td><td>Initial vs. final baseline Δ for VO<sub>2</sub>, HR, TSI, HHb</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 5. Feature families exposed by <code>features.py</code>.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 4. STATISTICAL ANALYSIS                            -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>4. Statistical Analysis</h2>
+
+<p>Inference is split between Python and R along tool-strength lines: Python is used for descriptive tests, omnibus ANOVA, non-parametric backup and correlation matrices; R is used for linear mixed-effects models that accommodate the repeated-measures structure and inter-individual variability typical of running-economy research.</p>
+
+<h3>4.1 Python side — <code>statistics.py</code></h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Test</th><th>Library</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Shapiro–Wilk</td><td><code>scipy.stats</code></td><td>Normality assessment per variable / condition</td></tr>
+      <tr><td>Repeated-measures ANOVA</td><td><code>statsmodels.AnovaRM</code></td><td>Within-subject effect of shoe (A/B/C)</td></tr>
+      <tr><td>Friedman test</td><td><code>scipy.stats</code></td><td>Non-parametric fallback when normality fails</td></tr>
+      <tr><td>Post-hoc pairwise</td><td><code>scipy</code> + Bonferroni</td><td>A–B, A–C, B–C contrasts</td></tr>
+      <tr><td>Effect sizes</td><td>custom / <code>pingouin</code></td><td>η², Cohen's d</td></tr>
+      <tr><td>Correlation matrix</td><td><code>pingouin</code></td><td>Pearson &amp; Spearman across mNIRS ↔ VO<sub>2</sub> ↔ FP features</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 6. Statistical tests implemented in <code>statistics.py</code>.</p>
+
+<h3>4.2 R side — <code>main.Rmd</code></h3>
+<p>The R Markdown document fits linear mixed-effects models with <code>lme4</code>/<code>lmerTest</code> (fixed: footwear condition; random: participant intercept), complemented by <code>afex::aov_car</code> for classical repeated-measures ANOVA and <code>emmeans</code> for Bonferroni-corrected pairwise contrasts. Outputs are rendered to a self-contained HTML report via <code>rmarkdown::render()</code>. LMM are the appropriate framework here because they accommodate (i) the within-participant structure (two exposures per shoe), (ii) missing segments from occasional signal dropouts without listwise deletion, and (iii) the substantial inter-individual baseline variability expected in running economy.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 5. VISUALISATION                                   -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>5. Visualisation Layer — <code>visualization.py</code></h2>
+
+<p>All publication figures are generated from a single Matplotlib/Seaborn module that enforces the project colour palette (A = red, B = teal, C = orange) and returns <code>Figure</code> objects (saved at 300 dpi under <code>results/</code> when <code>save=True</code>).</p>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Plot type</th><th>Inputs</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Time-series overlays</td><td>VO<sub>2</sub>p + TSI / HHb on shared time axis</td><td>Visualise coupling or dissociation across footwear conditions</td></tr>
+      <tr><td>Boxplots per condition</td><td>VO<sub>2</sub>, HR, TSI, HHb, peak force</td><td>Compare central tendency and spread A vs. B vs. C</td></tr>
+      <tr><td>Scatter + regression</td><td>VO<sub>2</sub>p × mNIRS (steady state)</td><td>Quantify pulmonary ↔ muscle coupling strength</td></tr>
+      <tr><td>AUC bar charts</td><td>O<sub>2</sub>Hb, HHb integrals</td><td>Summarise cumulative oxygenation load by condition</td></tr>
+      <tr><td>Correlation heatmap</td><td>All features × all conditions</td><td>Screen for multimodal patterns</td></tr>
+      <tr><td>Force-peak traces</td><td>Total Fz + detected peaks</td><td>Sanity-check peak detection &amp; step frequency</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="caption">Table 7. Planned figure outputs from <code>visualization.py</code>.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 6. REPRODUCIBILITY                                 -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>6. Reproducibility and Pipeline Validation</h2>
+
+<p>The project is reproducible from a clean clone of the repository. A <code>conda</code> environment (<code>environment.yml</code>) and a <code>pip</code> fallback (<code>requirements.txt</code>) pin the scientific stack (numpy 1.26, pandas 2.2, scipy 1.13, scikit-learn 1.4, statsmodels 0.14, pingouin 0.5, matplotlib 3.8, seaborn 0.13). Each Python module exposes a <code>__main__</code> validation block that loads the pre-test data, runs its stage, and asserts structural invariants (row counts, timeline coverage, condition order, column presence).</p>
+
+<pre><code># Reproduce
+git clone https://github.com/Baptoudu36/Augros.Baptiste.git
+cd Augros.Baptiste
+conda env create -f environment.yml && conda activate depoxy
+jupyter notebook main.ipynb               # Python pipeline + figures
+Rscript -e "rmarkdown::render('main.Rmd')" # R inferential report</code></pre>
+
+<p>Validation on the pre-test participant dataset confirms that the four modalities ingest cleanly, synchronise to a common origin, filter without edge artefacts, segment into the expected ten non-empty phases (2 baselines + warmup + pre-block recovery + 6 runs + 5 inter-block recoveries), and produce the expected 6-row block table and 3-row condition table (A, B, C). Missing triggers in the heart-rate file were correctly recovered by the signal-driven inference fallback.</p>
+
+<div class="callout">
+  <strong>Data handling note.</strong> Participant data are pseudonymised by a unique code (<code>000NnPp</code> format) in line with the laboratory's Data Management Plan (EuroMov DHM / UM). The raw force-plate file exceeds GitHub's size cap and is hosted separately (Google Drive link in <code>README.md</code>). Ethical approval: University of Montpellier Research Ethics Committee (project DEPOXY, Perrey S.).
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- 7. LIMITATIONS                                     -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>7. Limitations and Perspectives</h2>
+
+<p>Three principal limitations should be flagged for the defence. <em>First</em>, the pipeline has been validated end-to-end only on the pre-test participant; cohort-level acquisition was completed on 16 April 2026 and integration of the full ~20-participant dataset is ongoing. <em>Second</em>, force-plate calibration relies on a nominal 100 N/V factor; a per-session calibration sheet would tighten the conversion but does not affect relative condition contrasts, which are the primary analytical target. <em>Third</em>, no electromyographic channel is recorded: the interpretation of coupled changes in HHb and step frequency remains indirect.</p>
+
+<p>Two extensions are planned. (i) A signal-quality dashboard that flags dropped NIRS frames, K5 breath outliers and force-plate saturation per block, enabling per-block quality weighting in the LMM. (ii) Integration of the VO<sub>2</sub>/HHb ratio as a candidate composite indicator of peripheral oxygen cost, to be tested against condition contrasts in the final dissertation.</p>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- REFERENCES                                         -->
+<!-- ══════════════════════════════════════════════════ -->
+<h2>References</h2>
+<div class="references">
+  <p>Azevedo, R. A., Souza, K. M., Silva, L. F., et al. (2022). Comparing muscle VO<sub>2</sub> from near-infrared spectroscopy desaturation rate to pulmonary VO<sub>2</sub> during cycling below, at, and above the maximal lactate steady state. <em>European Journal of Applied Physiology, 122</em>, 2125–2137.</p>
+  <p>Bringard, A., Perrey, S., &amp; Belluye, N. (2006). Aerobic energy cost and sensation responses during submaximal running exercise — positive effects of wearing compression tights. <em>International Journal of Sports Medicine, 27</em>(5), 373–378.</p>
+  <p>Hoogkamer, W., Kipp, S., Frank, J. H., Farina, E. M., Luo, G., &amp; Kram, R. (2018). A comparison of the energetic cost of running in marathon racing shoes. <em>Sports Medicine, 48</em>(4), 1009–1019.</p>
+  <p>Perrey, S., Ferrari, M., &amp; Quaresima, V. (2024). Muscle Oximetry in Sports Science: An Updated Systematic Review. <em>Sports Medicine, 54</em>, 1–26.</p>
+  <p>Ferrari, M., Muthalib, M., &amp; Quaresima, V. (2011). The use of near-infrared spectroscopy in understanding skeletal muscle physiology. <em>Philosophical Transactions of the Royal Society A, 369</em>(1955), 4577–4590.</p>
+</div>
+
+<hr />
+<p style="font-size:12px;color:var(--muted);text-align:center;margin-top:16px;">
+  DEPOXY Project — Baptiste AUGROS — Master STAPS IEAP 2SIA — Université de Montpellier — Academic Year 2025–2026<br>
+  Course: Python – R – Git. Document prepared for academic evaluation. All analyses grounded exclusively in project source files.
+</p>
+
+</body>
+</html>
